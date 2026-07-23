@@ -18,10 +18,9 @@
 
 | 이름 | 역할 및 담당 도메인 | GitHub |
 | :---: | :--- | :--- |
-| **오윤아** | Android 프로젝트·Git 협업 환경 초기 설정 / 세부 기능 담당 확정 후 갱신 | [@lynni0925](https://github.com/lynni0925) |
-| **송은선** | 세부 기능 담당 확정 후 갱신 | GitHub 계정 확인 후 추가 |
-
-> 자료에서 확인할 수 없는 담당 기능과 GitHub 계정은 임의로 배정하지 않았습니다. 첫 스프린트 시작 전에 이 표를 확정해주세요.
+| **오윤아** | • 팀장<br>• GitHub 저장소 초기 세팅 및 구조 설계<br>• 지출 관리<br>• 알림 기능 | [@lynni0925](https://github.com/lynni0925) |
+| **전해린** | • 회원 관리<br>• 수입 관리<br>• 대시보드<br>• 거래 내역 리스트 | GitHub 계정 확인 후 추가 |
+| **송은선** | • 디자이너<br>• 화면 디자인<br>• 기획서·기능명세서 등 문서 관리<br>• 발표자료 및 구현 영상 제작 | GitHub 계정 확인 후 추가 |
 
 <br/>
 
@@ -179,4 +178,3 @@ git switch -c feat/income_yoona
 - [2026 GURU2 Notion](https://app.notion.com/p/2026-GURU2-39f6fce1763180b29466d664c60430b7)
 - 기능명세서: `기능명세서_이거사조.xlsx`
 - README 형식 참고: [Pebble Frontend](https://github.com/umc-pebble/Pebble-Frontend)
-
