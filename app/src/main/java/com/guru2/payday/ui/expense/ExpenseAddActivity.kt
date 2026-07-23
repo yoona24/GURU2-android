@@ -1,7 +1,9 @@
 package com.guru2.payday.ui.expense
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,24 +11,41 @@ import android.view.View
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import com.guru2.payday.R
+import com.guru2.payday.data.local.ExpenseEntity
+import com.guru2.payday.data.local.PaydayDatabase
 import com.guru2.payday.databinding.ActivityExpenseAddBinding
+import com.guru2.payday.notification.ExpenseNotificationScheduler
 import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ExpenseAddActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExpenseAddBinding
     private var sharePeopleCount = MIN_SHARE_PEOPLE
-    private var selectedExpenseType = ExpenseType.FIXED
+    private var selectedExpenseType = ExpenseType.VARIABLE
+    private var selectedCategoryName = ""
+    private var selectedPaymentDate: LocalDate? = null
+    private var loadedExpense: ExpenseEntity? = null
+    private var isFormattingAmount = false
+
     private val isEditMode: Boolean
         get() = intent.action == Intent.ACTION_EDIT ||
             intent.getBooleanExtra(EXTRA_EDIT_MODE, false)
+
+    private val requestNotificationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { }
 
     private val expenseTypeTabs: List<TextView>
         get() = listOf(
@@ -52,11 +71,12 @@ class ExpenseAddActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupSystemBars()
-        setupExpenseTypeTabs()
         setupCategoryButtons()
+        setupExpenseTypeTabs()
         setupDatePicker()
         setupSharePeople()
         setupRecurringOptions()
+        setupValidation()
         setupActions()
         setupScreenMode()
     }
@@ -68,16 +88,12 @@ class ExpenseAddActivity : AppCompatActivity() {
     }
 
     private fun setupExpenseTypeTabs() {
-        binding.fixedExpenseTab.setOnClickListener {
-            selectExpenseType(ExpenseType.FIXED)
-        }
-        binding.variableExpenseTab.setOnClickListener {
-            selectExpenseType(ExpenseType.VARIABLE)
-        }
-        binding.savingExpenseTab.setOnClickListener {
-            selectExpenseType(ExpenseType.SAVING)
-        }
-        selectExpenseType(ExpenseType.FIXED)
+        binding.fixedExpenseTab.setOnClickListener { selectExpenseType(ExpenseType.FIXED) }
+        binding.variableExpenseTab.setOnClickListener { selectExpenseType(ExpenseType.VARIABLE) }
+        binding.savingExpenseTab.setOnClickListener { selectExpenseType(ExpenseType.SAVING) }
+
+        val initialType = ExpenseType.fromValue(intent.getStringExtra(EXTRA_EXPENSE_TYPE))
+        selectExpenseType(initialType)
     }
 
     private fun selectExpenseType(expenseType: ExpenseType) {
@@ -100,6 +116,10 @@ class ExpenseAddActivity : AppCompatActivity() {
             )
         }
         updateFormForExpenseType(expenseType)
+        if (expenseType == ExpenseType.FIXED) {
+            requestNotificationPermissionIfNeeded()
+        }
+        validateForm()
     }
 
     private fun updateFormForExpenseType(expenseType: ExpenseType) {
@@ -112,7 +132,6 @@ class ExpenseAddActivity : AppCompatActivity() {
             if (isFixedExpense && binding.shareSwitch.isChecked) View.VISIBLE else View.GONE
         binding.recurringDivider.visibility = fixedSectionVisibility
         binding.recurringSection.visibility = fixedSectionVisibility
-
         binding.paymentMethodLabel.setText(
             if (isSavingExpense) R.string.expense_destination else R.string.payment_method,
         )
@@ -124,6 +143,13 @@ class ExpenseAddActivity : AppCompatActivity() {
             },
         )
         updateCategories(isSavingExpense)
+        updateMonthlyConversion()
+    }
+
+    private fun setupCategoryButtons() {
+        categoryButtons.forEach { button ->
+            button.setOnClickListener { selectCategory(button) }
+        }
     }
 
     private fun updateCategories(isSavingExpense: Boolean) {
@@ -144,23 +170,13 @@ class ExpenseAddActivity : AppCompatActivity() {
         categoryButtons.forEachIndexed { index, button ->
             val label = categoryLabels.getOrNull(index)
             button.visibility = if (label == null) View.GONE else View.VISIBLE
-            if (label != null) {
-                button.setText(label)
-            }
-        }
-        selectCategory(binding.leisureCategoryButton)
-    }
-
-    private fun setupCategoryButtons() {
-        categoryButtons.forEach { button ->
-            button.setOnClickListener {
-                selectCategory(button)
-            }
+            label?.let(button::setText)
         }
         selectCategory(binding.leisureCategoryButton)
     }
 
     private fun selectCategory(selectedButton: TextView) {
+        selectedCategoryName = selectedButton.text.toString()
         categoryButtons.forEach { button ->
             val selected = button == selectedButton
             button.setBackgroundResource(
@@ -174,27 +190,35 @@ class ExpenseAddActivity : AppCompatActivity() {
                 ),
             )
         }
+        validateForm()
     }
 
     private fun setupDatePicker() {
         binding.paymentDateInput.setOnClickListener {
-            val today = Calendar.getInstance()
+            val initialDate = selectedPaymentDate ?: LocalDate.now()
             DatePickerDialog(
                 this,
                 { _, year, month, day ->
-                    val selectedDate = Calendar.getInstance().apply {
-                        set(year, month, day)
-                    }
-                    binding.paymentDateInput.text = SimpleDateFormat(
-                        if (isEditMode) "yyyy년 M월 d일" else "MM/dd/yyyy",
-                        if (isEditMode) Locale.KOREA else Locale.US,
-                    ).format(selectedDate.time)
+                    selectedPaymentDate = LocalDate.of(year, month + 1, day)
+                    renderPaymentDate()
+                    validateForm()
                 },
-                today.get(Calendar.YEAR),
-                today.get(Calendar.MONTH),
-                today.get(Calendar.DAY_OF_MONTH),
+                initialDate.year,
+                initialDate.monthValue - 1,
+                initialDate.dayOfMonth,
             ).show()
         }
+    }
+
+    private fun renderPaymentDate() {
+        val date = selectedPaymentDate ?: return
+        binding.paymentDateInput.text = date.format(
+            if (isEditMode) {
+                DateTimeFormatter.ofPattern("yyyy년 M월 d일", Locale.KOREA)
+            } else {
+                DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.US)
+            },
+        )
     }
 
     private fun setupSharePeople() {
@@ -205,9 +229,7 @@ class ExpenseAddActivity : AppCompatActivity() {
                 } else {
                     View.GONE
                 }
-            if (isChecked) {
-                updateShareCost()
-            }
+            updateShareCost()
         }
         binding.decreaseShareButton.setOnClickListener {
             if (sharePeopleCount > MIN_SHARE_PEOPLE) {
@@ -221,49 +243,27 @@ class ExpenseAddActivity : AppCompatActivity() {
                 updateShareCost()
             }
         }
-        binding.expenseAmountInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(
-                text: CharSequence?,
-                start: Int,
-                count: Int,
-                after: Int,
-            ) = Unit
-
-            override fun onTextChanged(
-                text: CharSequence?,
-                start: Int,
-                before: Int,
-                count: Int,
-            ) {
-                if (binding.shareSwitch.isChecked) {
-                    updateShareCost()
-                }
-            }
-
-            override fun afterTextChanged(text: Editable?) = Unit
-        })
         updateShareCost()
     }
 
     private fun updateShareCost() {
-        val totalAmount = binding.expenseAmountInput.text
-            .toString()
-            .replace(",", "")
-            .toLongOrNull()
-            ?: 0L
+        val totalAmount = amountValue()
         val personalCost = totalAmount / sharePeopleCount
-        val formattedCost = NumberFormat.getNumberInstance(Locale.KOREA).format(personalCost)
+        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
 
         binding.sharePeopleCountText.text = sharePeopleCount.toString()
         binding.shareCostText.text = getString(
             R.string.share_cost,
-            formattedCost,
+            formatter.format(totalAmount),
+            formatter.format(personalCost),
             sharePeopleCount,
         )
         binding.decreaseShareButton.isEnabled = sharePeopleCount > MIN_SHARE_PEOPLE
         binding.decreaseShareButton.alpha =
             if (binding.decreaseShareButton.isEnabled) 1f else DISABLED_ALPHA
         binding.increaseShareButton.isEnabled = sharePeopleCount < MAX_SHARE_PEOPLE
+        binding.increaseShareButton.alpha =
+            if (binding.increaseShareButton.isEnabled) 1f else DISABLED_ALPHA
     }
 
     private fun setupRecurringOptions() {
@@ -281,72 +281,148 @@ class ExpenseAddActivity : AppCompatActivity() {
             showOptions(
                 anchor = binding.recurringCycleInput,
                 options = resources.getStringArray(R.array.recurring_cycles),
+                onSelected = ::updateMonthlyConversion,
             )
         }
     }
 
-    private fun showOptions(anchor: TextView, options: Array<String>) {
+    private fun showOptions(
+        anchor: TextView,
+        options: Array<String>,
+        onSelected: () -> Unit = {},
+    ) {
         PopupMenu(this, anchor).apply {
             options.forEachIndexed { index, option ->
                 menu.add(0, index, index, option)
             }
             setOnMenuItemClickListener { item ->
                 anchor.text = item.title
+                onSelected()
                 true
             }
             show()
         }
     }
 
-    private fun setupActions() {
-        binding.closeButton.setOnClickListener {
-            finish()
-        }
-        binding.saveButton.setOnClickListener {
-            val name = binding.expenseNameInput.text.toString().trim()
-            val amount = binding.expenseAmountInput.text.toString().trim()
-            if (name.isEmpty() || amount.isEmpty()) {
-                Toast.makeText(this, R.string.expense_required, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            Toast.makeText(
-                this,
-                if (isEditMode) R.string.expense_updated else R.string.expense_saved,
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
-        binding.deleteButton.setOnClickListener {
-            showDeleteConfirmation()
+    private fun setupValidation() {
+        binding.expenseNameInput.addTextChangedListener(SimpleTextWatcher(::validateForm))
+        binding.paymentMethodInput.addTextChangedListener(SimpleTextWatcher(::validateForm))
+        binding.expenseAmountInput.addTextChangedListener(
+            SimpleTextWatcher {
+                formatAmountInput()
+                updateShareCost()
+                updateMonthlyConversion()
+                validateForm()
+            },
+        )
+        validateForm()
+    }
+
+    private fun formatAmountInput() {
+        if (isFormattingAmount) return
+        val raw = binding.expenseAmountInput.text.toString().replace(",", "")
+        if (raw.isBlank()) return
+        val amount = raw.toLongOrNull() ?: return
+        val formatted = NumberFormat.getNumberInstance(Locale.KOREA).format(amount)
+        if (formatted != binding.expenseAmountInput.text.toString()) {
+            isFormattingAmount = true
+            binding.expenseAmountInput.setText(formatted)
+            binding.expenseAmountInput.setSelection(formatted.length)
+            isFormattingAmount = false
         }
     }
 
-    private fun setupScreenMode() {
-        if (!isEditMode) {
-            return
+    private fun updateMonthlyConversion() {
+        val isYearly = selectedExpenseType == ExpenseType.FIXED &&
+            binding.recurringCycleInput.text.toString() == YEARLY_LABEL
+        binding.monthlyConversionText.visibility = if (isYearly) View.VISIBLE else View.GONE
+        if (isYearly) {
+            val monthlyAmount = amountValue() / 12
+            binding.monthlyConversionText.text = getString(
+                R.string.monthly_conversion,
+                NumberFormat.getNumberInstance(Locale.KOREA).format(monthlyAmount),
+            )
         }
+    }
+
+    private fun validateForm() {
+        if (!::binding.isInitialized) return
+        val isValid = binding.expenseNameInput.text.toString().trim().isNotEmpty() &&
+            amountValue() > 0 &&
+            selectedCategoryName.isNotEmpty() &&
+            binding.paymentMethodInput.text.toString().trim().isNotEmpty() &&
+            selectedPaymentDate != null
+        binding.saveButton.isEnabled = isValid
+        binding.saveButton.alpha = if (isValid) 1f else DISABLED_ALPHA
+    }
+
+    private fun setupActions() {
+        binding.closeButton.setOnClickListener { finish() }
+        binding.saveButton.setOnClickListener { saveExpense() }
+        binding.deleteButton.setOnClickListener { showDeleteConfirmation() }
+    }
+
+    private fun setupScreenMode() {
+        if (!isEditMode) return
 
         binding.screenTitle.setText(R.string.expense_edit_title)
         binding.saveButton.setText(R.string.edit)
         binding.deleteButton.visibility = View.VISIBLE
 
-        val expenseType = ExpenseType.fromValue(
-            intent.getStringExtra(EXTRA_EXPENSE_TYPE),
+        val expenseId = intent.getLongExtra(EXTRA_EXPENSE_ID, 0L)
+        if (expenseId > 0) {
+            loadExpense(expenseId)
+        } else {
+            populateDesignSample()
+        }
+    }
+
+    private fun loadExpense(expenseId: Long) {
+        lifecycleScope.launch {
+            val expense = withContext(Dispatchers.IO) {
+                PaydayDatabase.getInstance(this@ExpenseAddActivity)
+                    .expenseDao()
+                    .getById(expenseId)
+            } ?: run {
+                finish()
+                return@launch
+            }
+            loadedExpense = expense
+            populateExpense(expense)
+        }
+    }
+
+    private fun populateDesignSample() {
+        populateExpense(
+            ExpenseEntity(
+                type = ExpenseEntity.TYPE_FIXED,
+                name = DEFAULT_EDIT_NAME,
+                amount = DEFAULT_EDIT_AMOUNT,
+                category = getString(R.string.category_leisure),
+                paymentMethod = DEFAULT_EDIT_PAYMENT_METHOD,
+                paymentDate = DEFAULT_EDIT_PAYMENT_DATE,
+                recurringDay = 1,
+                recurrence = ExpenseEntity.RECURRENCE_MONTHLY,
+            ),
         )
-        selectExpenseType(expenseType)
-        binding.expenseNameInput.setText(
-            intent.getStringExtra(EXTRA_EXPENSE_NAME) ?: DEFAULT_EDIT_NAME,
-        )
-        binding.expenseAmountInput.setText(
-            intent.getLongExtra(EXTRA_EXPENSE_AMOUNT, DEFAULT_EDIT_AMOUNT).toString(),
-        )
-        binding.paymentMethodInput.setText(
-            intent.getStringExtra(EXTRA_PAYMENT_METHOD) ?: DEFAULT_EDIT_PAYMENT_METHOD,
-        )
-        binding.paymentDateInput.text =
-            intent.getStringExtra(EXTRA_PAYMENT_DATE) ?: DEFAULT_EDIT_PAYMENT_DATE
-        selectCategoryByName(
-            intent.getStringExtra(EXTRA_CATEGORY) ?: getString(R.string.category_leisure),
-        )
+    }
+
+    private fun populateExpense(expense: ExpenseEntity) {
+        selectExpenseType(ExpenseType.fromValue(expense.type))
+        binding.expenseNameInput.setText(expense.name)
+        binding.expenseAmountInput.setText(expense.amount.toString())
+        binding.paymentMethodInput.setText(expense.paymentMethod)
+        selectedPaymentDate = LocalDate.parse(expense.paymentDate)
+        renderPaymentDate()
+        selectCategoryByName(expense.category)
+        sharePeopleCount = expense.shareCount.coerceIn(MIN_SHARE_PEOPLE, MAX_SHARE_PEOPLE)
+        binding.shareSwitch.isChecked = expense.isShared
+        expense.recurringDay?.let { binding.recurringDayInput.text = getString(R.string.day_value, it) }
+        binding.recurringCycleInput.text =
+            if (expense.recurrence == ExpenseEntity.RECURRENCE_YEARLY) YEARLY_LABEL else MONTHLY_LABEL
+        updateShareCost()
+        updateMonthlyConversion()
+        validateForm()
     }
 
     private fun selectCategoryByName(categoryName: String) {
@@ -355,20 +431,136 @@ class ExpenseAddActivity : AppCompatActivity() {
             ?.let(::selectCategory)
     }
 
+    private fun saveExpense() {
+        if (!binding.saveButton.isEnabled) {
+            Toast.makeText(this, R.string.expense_all_required, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (amountValue() <= 0L) {
+            Toast.makeText(this, R.string.expense_amount_invalid, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val expense = buildExpense()
+        lifecycleScope.launch {
+            val savedExpense = withContext(Dispatchers.IO) {
+                val dao = PaydayDatabase.getInstance(this@ExpenseAddActivity).expenseDao()
+                if (expense.id == 0L) {
+                    expense.copy(id = dao.insert(expense))
+                } else {
+                    dao.update(expense)
+                    expense
+                }
+            }
+            loadedExpense?.let {
+                if (it.type == ExpenseEntity.TYPE_FIXED &&
+                    savedExpense.type != ExpenseEntity.TYPE_FIXED
+                ) {
+                    ExpenseNotificationScheduler.cancel(this@ExpenseAddActivity, it.id)
+                }
+            }
+            if (savedExpense.type == ExpenseEntity.TYPE_FIXED) {
+                ExpenseNotificationScheduler.schedule(this@ExpenseAddActivity, savedExpense)
+            }
+            Toast.makeText(
+                this@ExpenseAddActivity,
+                if (isEditMode) R.string.expense_updated else R.string.expense_saved,
+                Toast.LENGTH_SHORT,
+            ).show()
+            finish()
+        }
+    }
+
+    private fun buildExpense(): ExpenseEntity {
+        val isFixed = selectedExpenseType == ExpenseType.FIXED
+        val recurringDay = if (isFixed) {
+            binding.recurringDayInput.text.toString().filter(Char::isDigit).toInt()
+        } else {
+            null
+        }
+        val recurrence = if (!isFixed) {
+            null
+        } else if (binding.recurringCycleInput.text.toString() == YEARLY_LABEL) {
+            ExpenseEntity.RECURRENCE_YEARLY
+        } else {
+            ExpenseEntity.RECURRENCE_MONTHLY
+        }
+        return ExpenseEntity(
+            id = loadedExpense?.id ?: 0L,
+            type = selectedExpenseType.name,
+            name = binding.expenseNameInput.text.toString().trim(),
+            amount = amountValue(),
+            category = selectedCategoryName,
+            paymentMethod = binding.paymentMethodInput.text.toString().trim(),
+            paymentDate = requireNotNull(selectedPaymentDate).toString(),
+            isShared = isFixed && binding.shareSwitch.isChecked,
+            shareCount = if (isFixed && binding.shareSwitch.isChecked) sharePeopleCount else 1,
+            recurringDay = recurringDay,
+            recurrence = recurrence,
+            nextPaymentDate = recurringDay?.let { calculateNextPaymentDate(it, recurrence).toString() },
+        )
+    }
+
+    private fun calculateNextPaymentDate(day: Int, recurrence: String?): LocalDate {
+        val today = LocalDate.now()
+        val validDay = day.coerceAtMost(today.lengthOfMonth())
+        var candidate = today.withDayOfMonth(validDay)
+        if (!candidate.isAfter(today)) {
+            candidate = if (recurrence == ExpenseEntity.RECURRENCE_YEARLY) {
+                candidate.plusYears(1)
+            } else {
+                candidate.plusMonths(1).let {
+                    it.withDayOfMonth(day.coerceAtMost(it.lengthOfMonth()))
+                }
+            }
+        }
+        return candidate
+    }
+
     private fun showDeleteConfirmation() {
         AlertDialog.Builder(this)
             .setTitle(R.string.delete_expense_title)
             .setMessage(R.string.delete_expense_message)
             .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.delete) { _, _ ->
-                Toast.makeText(this, R.string.expense_deleted, Toast.LENGTH_SHORT).show()
-                finish()
-            }
+            .setPositiveButton(R.string.delete) { _, _ -> deleteExpense() }
             .show()
     }
 
+    private fun deleteExpense() {
+        val expense = loadedExpense
+        if (expense == null) {
+            finish()
+            return
+        }
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                PaydayDatabase.getInstance(this@ExpenseAddActivity).expenseDao().delete(expense)
+            }
+            ExpenseNotificationScheduler.cancel(this@ExpenseAddActivity, expense.id)
+            Toast.makeText(
+                this@ExpenseAddActivity,
+                R.string.expense_deleted,
+                Toast.LENGTH_SHORT,
+            ).show()
+            finish()
+        }
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun amountValue(): Long = binding.expenseAmountInput.text
+        .toString()
+        .replace(",", "")
+        .toLongOrNull()
+        ?: 0L
+
     companion object {
         const val EXTRA_EDIT_MODE = "expense_edit_mode"
+        const val EXTRA_EXPENSE_ID = "expense_id"
         const val EXTRA_EXPENSE_TYPE = "expense_type"
         const val EXTRA_EXPENSE_NAME = "expense_name"
         const val EXTRA_EXPENSE_AMOUNT = "expense_amount"
@@ -379,10 +571,12 @@ class ExpenseAddActivity : AppCompatActivity() {
         private const val DEFAULT_EDIT_NAME = "넷플릭스"
         private const val DEFAULT_EDIT_AMOUNT = 15_000L
         private const val DEFAULT_EDIT_PAYMENT_METHOD = "현대카드"
-        private const val DEFAULT_EDIT_PAYMENT_DATE = "2026년 12월 22일"
-        const val MIN_SHARE_PEOPLE = 2
-        const val MAX_SHARE_PEOPLE = 20
-        const val DISABLED_ALPHA = 0.4f
+        private const val DEFAULT_EDIT_PAYMENT_DATE = "2026-12-22"
+        private const val MONTHLY_LABEL = "월간"
+        private const val YEARLY_LABEL = "연간"
+        private const val MIN_SHARE_PEOPLE = 2
+        private const val MAX_SHARE_PEOPLE = 10
+        private const val DISABLED_ALPHA = 0.4f
     }
 
     private enum class ExpenseType {
@@ -393,7 +587,27 @@ class ExpenseAddActivity : AppCompatActivity() {
 
         companion object {
             fun fromValue(value: String?): ExpenseType =
-                entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: FIXED
+                entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: VARIABLE
         }
+    }
+
+    private class SimpleTextWatcher(
+        private val afterChanged: () -> Unit,
+    ) : TextWatcher {
+        override fun beforeTextChanged(
+            text: CharSequence?,
+            start: Int,
+            count: Int,
+            after: Int,
+        ) = Unit
+
+        override fun onTextChanged(
+            text: CharSequence?,
+            start: Int,
+            before: Int,
+            count: Int,
+        ) = Unit
+
+        override fun afterTextChanged(text: Editable?) = afterChanged()
     }
 }

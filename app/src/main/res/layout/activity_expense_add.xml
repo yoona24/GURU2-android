@@ -130,6 +130,7 @@
                         android:hint="@string/expense_name_hint"
                         android:importantForAutofill="no"
                         android:inputType="textCapSentences"
+                        android:maxLength="20"
                         android:selectAllOnFocus="false" />
                 </LinearLayout>
 
@@ -148,8 +149,18 @@
                         style="@style/Widget.Payday.Expense.Input"
                         android:hint="@string/expense_amount_hint"
                         android:importantForAutofill="no"
-                        android:inputType="numberDecimal"
+                        android:inputType="number"
                         android:selectAllOnFocus="false" />
+
+                    <TextView
+                        android:id="@+id/monthlyConversionText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:paddingStart="4dp"
+                        android:textColor="@color/payday_text_hint"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout

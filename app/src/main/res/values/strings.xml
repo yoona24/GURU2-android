@@ -29,7 +29,7 @@
     <string name="payment_date_hint">mm/dd/yyyy</string>
     <string name="share_expense">공유 여부</string>
     <string name="share_people">공유 인원</string>
-    <string name="share_cost">내 부담 %1$s원(%2$d명 공유)</string>
+    <string name="share_cost">총 %1$s원 · 내 부담 %2$s원(%3$d명 공유)</string>
     <string name="decrease_share_people">공유 인원 줄이기</string>
     <string name="increase_share_people">공유 인원 늘리기</string>
     <string name="recurring_payment_setting">정기 결제 설정</string>
@@ -47,19 +47,54 @@
     <string name="expense_updated">지출이 수정되었습니다.</string>
     <string name="expense_deleted">지출이 삭제되었습니다.</string>
     <string name="expense_required">지출 이름과 금액을 입력해 주세요.</string>
+    <string name="expense_all_required">지출 이름, 금액, 카테고리, 결제 수단과 결제일을 모두 입력해 주세요.</string>
+    <string name="expense_amount_invalid">금액은 0원보다 커야 합니다.</string>
+    <string name="monthly_conversion">월 환산 약 %1$s원</string>
+    <string name="day_value">%1$d일</string>
+    <string name="fixed_expense_list_title">정기 지출</string>
+    <string name="fixed_expense_empty">등록된 정기 지출이 없습니다.\n아래 버튼으로 지출을 추가해 보세요.</string>
+    <string name="add_fixed_expense">고정 지출 추가</string>
+    <string name="expense_list_detail">%1$s · %2$s · %3$s</string>
+    <string name="expense_list_amount">-%1$s원</string>
+    <string name="payment_notification_channel">결제 예정 알림</string>
+    <string name="payment_notification_title">내일 결제 예정</string>
+    <string name="payment_notification_message">%1$s 결제 하루 전이에요 · %2$s원 예정</string>
     <string name="expense_category_selected">%1$s 카테고리가 선택되었습니다.</string>
     <string-array name="recurring_days">
         <item>1일</item>
+        <item>2일</item>
+        <item>3일</item>
+        <item>4일</item>
         <item>5일</item>
+        <item>6일</item>
+        <item>7일</item>
+        <item>8일</item>
+        <item>9일</item>
         <item>10일</item>
+        <item>11일</item>
+        <item>12일</item>
+        <item>13일</item>
+        <item>14일</item>
         <item>15일</item>
+        <item>16일</item>
+        <item>17일</item>
+        <item>18일</item>
+        <item>19일</item>
         <item>20일</item>
+        <item>21일</item>
+        <item>22일</item>
+        <item>23일</item>
+        <item>24일</item>
         <item>25일</item>
-        <item>말일</item>
+        <item>26일</item>
+        <item>27일</item>
+        <item>28일</item>
+        <item>29일</item>
+        <item>30일</item>
+        <item>31일</item>
     </string-array>
     <string-array name="recurring_cycles">
         <item>월간</item>
-        <item>주간</item>
         <item>연간</item>
     </string-array>
 </resources>
