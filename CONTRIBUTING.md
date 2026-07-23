@@ -9,19 +9,19 @@
 ```bash
 git switch develop
 git pull origin develop
-git switch -c feat/income_닉네임
+git switch -c feat/income_yuna
 ```
 
-브랜치 형식은 `타입/기능명_닉네임`을 사용합니다.
+브랜치 명명 규칙은 `타입/기능명_이름`을 사용합니다.
 
-| 타입 | 용도 | 예시 |
+| 타입 | 설명 | 예시 |
 | :--- | :--- | :--- |
-| `feat` | 기능 추가 | `feat/dashboard_yoona` |
-| `fix` | 버그 수정 | `fix/payment-date_yoona` |
-| `design` | UI 변경 | `design/transaction-card_yoona` |
-| `refactor` | 리팩터링 | `refactor/transaction-domain_yoona` |
-| `docs` | 문서 변경 | `docs/readme_yoona` |
-| `chore` | 설정·의존성 | `chore/ci_yoona` |
+| `feat` | 새 기능 | `feat/dashboard_yuna` |
+| `fix` | 버그 수정 | `fix/payment-date_yuna` |
+| `design` | UI 변경 | `design/transaction-card_yuna` |
+| `refactor` | 리팩터링 | `refactor/expense-domain_yuna` |
+| `docs` | 문서 | `docs/readme_yuna` |
+| `chore` | 환경 설정 | `chore/ci_yuna` |
 
 ## Commit Convention
 
@@ -33,6 +33,16 @@ fix: 연간 결제 월 환산 오차 수정
 docs: 브랜치 전략 보완
 ```
 
+변경사항을 커밋한 뒤 현재 작업 브랜치명으로 push합니다.
+
+```bash
+git add .
+git commit -m "feat: 지출 등록 화면 구현"
+git push -u origin feat/expense_yuna
+```
+
+위 예시의 `feat/expense_yuna`는 개인 작업 브랜치명입니다. 브랜치를 만들 때 사용한 이름과 push할 때 사용하는 이름이 같아야 합니다.
+
 ## Pull Request
 
 1. 작업 브랜치를 원격에 push합니다.
@@ -42,4 +52,3 @@ docs: 브랜치 전략 보완
 5. `develop → main`은 마일스톤 단위의 통합 PR로만 진행합니다.
 
 리뷰 코멘트는 `[P1] 필수`, `[P2] 권장`, `[P3] 의견` 태그를 권장합니다.
-
