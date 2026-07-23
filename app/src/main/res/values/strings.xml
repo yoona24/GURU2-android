@@ -18,8 +18,12 @@
     <string name="category_medical">의료</string>
     <string name="category_shopping">쇼핑</string>
     <string name="category_other">기타</string>
+    <string name="category_saving">저축</string>
+    <string name="category_investment">투자</string>
     <string name="payment_method">결제 수단</string>
     <string name="payment_method_hint">예: 현대카드, 현금</string>
+    <string name="expense_destination">지출처</string>
+    <string name="expense_destination_hint">예: 하나은행 저축, 청년저축</string>
     <string name="payment_date">결제일</string>
     <string name="payment_date_hint">mm/dd/yyyy</string>
     <string name="share_expense">공유 여부</string>

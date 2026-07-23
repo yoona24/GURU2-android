@@ -21,6 +21,7 @@ import java.util.Locale
 class ExpenseAddActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExpenseAddBinding
     private var sharePeopleCount = MIN_SHARE_PEOPLE
+    private var selectedExpenseType = ExpenseType.FIXED
 
     private val expenseTypeTabs: List<TextView>
         get() = listOf(
@@ -61,15 +62,25 @@ class ExpenseAddActivity : AppCompatActivity() {
     }
 
     private fun setupExpenseTypeTabs() {
-        expenseTypeTabs.forEach { tab ->
-            tab.setOnClickListener {
-                selectExpenseType(tab)
-            }
+        binding.fixedExpenseTab.setOnClickListener {
+            selectExpenseType(ExpenseType.FIXED)
         }
-        selectExpenseType(binding.fixedExpenseTab)
+        binding.variableExpenseTab.setOnClickListener {
+            selectExpenseType(ExpenseType.VARIABLE)
+        }
+        binding.savingExpenseTab.setOnClickListener {
+            selectExpenseType(ExpenseType.SAVING)
+        }
+        selectExpenseType(ExpenseType.FIXED)
     }
 
-    private fun selectExpenseType(selectedTab: TextView) {
+    private fun selectExpenseType(expenseType: ExpenseType) {
+        selectedExpenseType = expenseType
+        val selectedTab = when (expenseType) {
+            ExpenseType.FIXED -> binding.fixedExpenseTab
+            ExpenseType.VARIABLE -> binding.variableExpenseTab
+            ExpenseType.SAVING -> binding.savingExpenseTab
+        }
         expenseTypeTabs.forEach { tab ->
             val selected = tab == selectedTab
             tab.setBackgroundResource(
@@ -82,8 +93,56 @@ class ExpenseAddActivity : AppCompatActivity() {
                 ),
             )
         }
-        binding.recurringSection.visibility =
-            if (selectedTab == binding.variableExpenseTab) View.GONE else View.VISIBLE
+        updateFormForExpenseType(expenseType)
+    }
+
+    private fun updateFormForExpenseType(expenseType: ExpenseType) {
+        val isFixedExpense = expenseType == ExpenseType.FIXED
+        val isSavingExpense = expenseType == ExpenseType.SAVING
+        val fixedSectionVisibility = if (isFixedExpense) View.VISIBLE else View.GONE
+
+        binding.shareSection.visibility = fixedSectionVisibility
+        binding.sharePeopleSection.visibility =
+            if (isFixedExpense && binding.shareSwitch.isChecked) View.VISIBLE else View.GONE
+        binding.recurringDivider.visibility = fixedSectionVisibility
+        binding.recurringSection.visibility = fixedSectionVisibility
+
+        binding.paymentMethodLabel.setText(
+            if (isSavingExpense) R.string.expense_destination else R.string.payment_method,
+        )
+        binding.paymentMethodInput.setHint(
+            if (isSavingExpense) {
+                R.string.expense_destination_hint
+            } else {
+                R.string.payment_method_hint
+            },
+        )
+        updateCategories(isSavingExpense)
+    }
+
+    private fun updateCategories(isSavingExpense: Boolean) {
+        val categoryLabels = if (isSavingExpense) {
+            listOf(R.string.category_saving, R.string.category_investment)
+        } else {
+            listOf(
+                R.string.category_leisure,
+                R.string.category_housing,
+                R.string.category_food,
+                R.string.category_transport,
+                R.string.category_medical,
+                R.string.category_shopping,
+                R.string.category_other,
+            )
+        }
+
+        categoryButtons.forEachIndexed { index, button ->
+            val label = categoryLabels.getOrNull(index)
+            button.visibility = if (label == null) View.GONE else View.VISIBLE
+            if (label != null) {
+                button.setText(label)
+            }
+        }
+        selectCategory(binding.leisureCategoryButton)
     }
 
     private fun setupCategoryButtons() {
@@ -134,7 +193,12 @@ class ExpenseAddActivity : AppCompatActivity() {
 
     private fun setupSharePeople() {
         binding.shareSwitch.setOnCheckedChangeListener { _, isChecked ->
-            binding.sharePeopleSection.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.sharePeopleSection.visibility =
+                if (isChecked && selectedExpenseType == ExpenseType.FIXED) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             if (isChecked) {
                 updateShareCost()
             }
@@ -247,5 +311,11 @@ class ExpenseAddActivity : AppCompatActivity() {
         const val MIN_SHARE_PEOPLE = 2
         const val MAX_SHARE_PEOPLE = 20
         const val DISABLED_ALPHA = 0.4f
+    }
+
+    private enum class ExpenseType {
+        FIXED,
+        VARIABLE,
+        SAVING,
     }
 }

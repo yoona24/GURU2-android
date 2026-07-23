@@ -98,6 +98,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/categorySection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
@@ -204,12 +205,14 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/paymentMethodSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/paymentMethodLabel"
                         style="@style/Widget.Payday.Expense.Label"
                         android:text="@string/payment_method" />
 
@@ -241,6 +244,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/shareSection"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="20dp"
@@ -338,6 +342,7 @@
                 </LinearLayout>
 
                 <View
+                    android:id="@+id/recurringDivider"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="8dp"
