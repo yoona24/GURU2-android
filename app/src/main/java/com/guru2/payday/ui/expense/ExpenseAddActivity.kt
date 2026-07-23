@@ -1,6 +1,7 @@
 package com.guru2.payday.ui.expense
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,6 +9,7 @@ import android.view.View
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -22,6 +24,9 @@ class ExpenseAddActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExpenseAddBinding
     private var sharePeopleCount = MIN_SHARE_PEOPLE
     private var selectedExpenseType = ExpenseType.FIXED
+    private val isEditMode: Boolean
+        get() = intent.action == Intent.ACTION_EDIT ||
+            intent.getBooleanExtra(EXTRA_EDIT_MODE, false)
 
     private val expenseTypeTabs: List<TextView>
         get() = listOf(
@@ -53,6 +58,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         setupSharePeople()
         setupRecurringOptions()
         setupActions()
+        setupScreenMode()
     }
 
     private fun setupSystemBars() {
@@ -180,8 +186,8 @@ class ExpenseAddActivity : AppCompatActivity() {
                         set(year, month, day)
                     }
                     binding.paymentDateInput.text = SimpleDateFormat(
-                        "MM/dd/yyyy",
-                        Locale.US,
+                        if (isEditMode) "yyyy년 M월 d일" else "MM/dd/yyyy",
+                        if (isEditMode) Locale.KOREA else Locale.US,
                     ).format(selectedDate.time)
                 },
                 today.get(Calendar.YEAR),
@@ -303,11 +309,77 @@ class ExpenseAddActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.expense_required, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            Toast.makeText(this, R.string.expense_saved, Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                if (isEditMode) R.string.expense_updated else R.string.expense_saved,
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+        binding.deleteButton.setOnClickListener {
+            showDeleteConfirmation()
         }
     }
 
-    private companion object {
+    private fun setupScreenMode() {
+        if (!isEditMode) {
+            return
+        }
+
+        binding.screenTitle.setText(R.string.expense_edit_title)
+        binding.saveButton.setText(R.string.edit)
+        binding.deleteButton.visibility = View.VISIBLE
+
+        val expenseType = ExpenseType.fromValue(
+            intent.getStringExtra(EXTRA_EXPENSE_TYPE),
+        )
+        selectExpenseType(expenseType)
+        binding.expenseNameInput.setText(
+            intent.getStringExtra(EXTRA_EXPENSE_NAME) ?: DEFAULT_EDIT_NAME,
+        )
+        binding.expenseAmountInput.setText(
+            intent.getLongExtra(EXTRA_EXPENSE_AMOUNT, DEFAULT_EDIT_AMOUNT).toString(),
+        )
+        binding.paymentMethodInput.setText(
+            intent.getStringExtra(EXTRA_PAYMENT_METHOD) ?: DEFAULT_EDIT_PAYMENT_METHOD,
+        )
+        binding.paymentDateInput.text =
+            intent.getStringExtra(EXTRA_PAYMENT_DATE) ?: DEFAULT_EDIT_PAYMENT_DATE
+        selectCategoryByName(
+            intent.getStringExtra(EXTRA_CATEGORY) ?: getString(R.string.category_leisure),
+        )
+    }
+
+    private fun selectCategoryByName(categoryName: String) {
+        categoryButtons
+            .firstOrNull { it.visibility == View.VISIBLE && it.text.toString() == categoryName }
+            ?.let(::selectCategory)
+    }
+
+    private fun showDeleteConfirmation() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_expense_title)
+            .setMessage(R.string.delete_expense_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                Toast.makeText(this, R.string.expense_deleted, Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .show()
+    }
+
+    companion object {
+        const val EXTRA_EDIT_MODE = "expense_edit_mode"
+        const val EXTRA_EXPENSE_TYPE = "expense_type"
+        const val EXTRA_EXPENSE_NAME = "expense_name"
+        const val EXTRA_EXPENSE_AMOUNT = "expense_amount"
+        const val EXTRA_CATEGORY = "expense_category"
+        const val EXTRA_PAYMENT_METHOD = "expense_payment_method"
+        const val EXTRA_PAYMENT_DATE = "expense_payment_date"
+
+        private const val DEFAULT_EDIT_NAME = "넷플릭스"
+        private const val DEFAULT_EDIT_AMOUNT = 15_000L
+        private const val DEFAULT_EDIT_PAYMENT_METHOD = "현대카드"
+        private const val DEFAULT_EDIT_PAYMENT_DATE = "2026년 12월 22일"
         const val MIN_SHARE_PEOPLE = 2
         const val MAX_SHARE_PEOPLE = 20
         const val DISABLED_ALPHA = 0.4f
@@ -317,5 +389,11 @@ class ExpenseAddActivity : AppCompatActivity() {
         FIXED,
         VARIABLE,
         SAVING,
+        ;
+
+        companion object {
+            fun fromValue(value: String?): ExpenseType =
+                entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: FIXED
+        }
     }
 }
