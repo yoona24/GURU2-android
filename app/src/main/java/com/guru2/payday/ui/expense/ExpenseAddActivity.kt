@@ -2,6 +2,8 @@ package com.guru2.payday.ui.expense
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -11,12 +13,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.guru2.payday.R
 import com.guru2.payday.databinding.ActivityExpenseAddBinding
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 class ExpenseAddActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExpenseAddBinding
+    private var sharePeopleCount = MIN_SHARE_PEOPLE
 
     private val expenseTypeTabs: List<TextView>
         get() = listOf(
@@ -45,6 +49,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         setupExpenseTypeTabs()
         setupCategoryButtons()
         setupDatePicker()
+        setupSharePeople()
         setupRecurringOptions()
         setupActions()
     }
@@ -127,6 +132,70 @@ class ExpenseAddActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupSharePeople() {
+        binding.shareSwitch.setOnCheckedChangeListener { _, isChecked ->
+            binding.sharePeopleSection.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (isChecked) {
+                updateShareCost()
+            }
+        }
+        binding.decreaseShareButton.setOnClickListener {
+            if (sharePeopleCount > MIN_SHARE_PEOPLE) {
+                sharePeopleCount--
+                updateShareCost()
+            }
+        }
+        binding.increaseShareButton.setOnClickListener {
+            if (sharePeopleCount < MAX_SHARE_PEOPLE) {
+                sharePeopleCount++
+                updateShareCost()
+            }
+        }
+        binding.expenseAmountInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                text: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int,
+            ) = Unit
+
+            override fun onTextChanged(
+                text: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int,
+            ) {
+                if (binding.shareSwitch.isChecked) {
+                    updateShareCost()
+                }
+            }
+
+            override fun afterTextChanged(text: Editable?) = Unit
+        })
+        updateShareCost()
+    }
+
+    private fun updateShareCost() {
+        val totalAmount = binding.expenseAmountInput.text
+            .toString()
+            .replace(",", "")
+            .toLongOrNull()
+            ?: 0L
+        val personalCost = totalAmount / sharePeopleCount
+        val formattedCost = NumberFormat.getNumberInstance(Locale.KOREA).format(personalCost)
+
+        binding.sharePeopleCountText.text = sharePeopleCount.toString()
+        binding.shareCostText.text = getString(
+            R.string.share_cost,
+            formattedCost,
+            sharePeopleCount,
+        )
+        binding.decreaseShareButton.isEnabled = sharePeopleCount > MIN_SHARE_PEOPLE
+        binding.decreaseShareButton.alpha =
+            if (binding.decreaseShareButton.isEnabled) 1f else DISABLED_ALPHA
+        binding.increaseShareButton.isEnabled = sharePeopleCount < MAX_SHARE_PEOPLE
+    }
+
     private fun setupRecurringOptions() {
         binding.recurringDayInput.text = resources.getStringArray(R.array.recurring_days).first()
         binding.recurringCycleInput.text =
@@ -172,5 +241,11 @@ class ExpenseAddActivity : AppCompatActivity() {
             }
             Toast.makeText(this, R.string.expense_saved, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private companion object {
+        const val MIN_SHARE_PEOPLE = 2
+        const val MAX_SHARE_PEOPLE = 20
+        const val DISABLED_ALPHA = 0.4f
     }
 }

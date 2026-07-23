@@ -23,6 +23,10 @@
     <string name="payment_date">결제일</string>
     <string name="payment_date_hint">mm/dd/yyyy</string>
     <string name="share_expense">공유 여부</string>
+    <string name="share_people">공유 인원</string>
+    <string name="share_cost">내 부담 %1$s원(%2$d명 공유)</string>
+    <string name="decrease_share_people">공유 인원 줄이기</string>
+    <string name="increase_share_people">공유 인원 늘리기</string>
     <string name="recurring_payment_setting">정기 결제 설정</string>
     <string name="recurring_day">결제일</string>
     <string name="recurring_cycle">반복 주기</string>
