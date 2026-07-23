@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="payday_primary">#6750A4</color>
-    <color name="payday_primary_dark">#4F378B</color>
-    <color name="payday_background">#FFFBFE</color>
-    <color name="payday_text_primary">#1D1B20</color>
+    <color name="payday_primary">#0038D1</color>
+    <color name="payday_primary_dark">#0038D1</color>
+    <color name="payday_background">#FFFFFF</color>
+    <color name="payday_text_primary">#1A1B24</color>
+    <color name="payday_text_secondary">#444655</color>
+    <color name="payday_text_hint">#6B7280</color>
+    <color name="payday_surface_tinted">#EEEDF9</color>
+    <color name="payday_border">#C4C5D8</color>
+    <color name="payday_switch_track">#E2E1EE</color>
+    <color name="payday_switch_thumb_border">#D1D5DB</color>
     <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>
-

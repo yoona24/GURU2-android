@@ -2,5 +2,47 @@
 <resources>
     <string name="app_name">Payday</string>
     <string name="app_tagline">수입은 한눈에, 정기지출은 미리 준비해요.</string>
+    <string name="expense_add_title">지출 추가</string>
+    <string name="expense_type_fixed">고정 지출</string>
+    <string name="expense_type_variable">변동 지출</string>
+    <string name="expense_type_saving">저축/투자</string>
+    <string name="expense_name">지출 이름</string>
+    <string name="expense_name_hint">지출 이름 입력</string>
+    <string name="expense_amount">금액</string>
+    <string name="expense_amount_hint">지출 금액 입력</string>
+    <string name="expense_category">카테고리</string>
+    <string name="category_leisure">여가</string>
+    <string name="category_housing">주거</string>
+    <string name="category_food">식비</string>
+    <string name="category_transport">교통</string>
+    <string name="category_medical">의료</string>
+    <string name="category_shopping">쇼핑</string>
+    <string name="category_other">기타</string>
+    <string name="payment_method">결제 수단</string>
+    <string name="payment_method_hint">예: 현대카드, 현금</string>
+    <string name="payment_date">결제일</string>
+    <string name="payment_date_hint">mm/dd/yyyy</string>
+    <string name="share_expense">공유 여부</string>
+    <string name="recurring_payment_setting">정기 결제 설정</string>
+    <string name="recurring_day">결제일</string>
+    <string name="recurring_cycle">반복 주기</string>
+    <string name="save">저장하기</string>
+    <string name="close">닫기</string>
+    <string name="expense_saved">지출이 저장되었습니다.</string>
+    <string name="expense_required">지출 이름과 금액을 입력해 주세요.</string>
+    <string name="expense_category_selected">%1$s 카테고리가 선택되었습니다.</string>
+    <string-array name="recurring_days">
+        <item>1일</item>
+        <item>5일</item>
+        <item>10일</item>
+        <item>15일</item>
+        <item>20일</item>
+        <item>25일</item>
+        <item>말일</item>
+    </string-array>
+    <string-array name="recurring_cycles">
+        <item>월간</item>
+        <item>주간</item>
+        <item>연간</item>
+    </string-array>
 </resources>
-
