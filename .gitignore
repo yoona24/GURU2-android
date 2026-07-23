@@ -1,0 +1,28 @@
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local SDK and secrets
+local.properties
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Native build / screenshots
+.cxx/
+captures/
+externalNativeBuild/
+

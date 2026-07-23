@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Payday" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/payday_primary</item>
+        <item name="colorPrimaryVariant">@color/payday_primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">@color/payday_primary_dark</item>
+    </style>
+</resources>
+
