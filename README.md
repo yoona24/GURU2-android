@@ -142,7 +142,7 @@ app/src/main/java/com/guru2/payday/
 - `develop`: 개발 통합 브랜치이자 일반 PR 대상
 - 개인 작업 브랜치: 최신 `develop`에서 생성
 
-**브랜치 명명 규칙: `타입/기능명_닉네임`**
+**브랜치 명명 규칙: `타입/기능명_이름`**
 
 ```bash
 git switch develop
