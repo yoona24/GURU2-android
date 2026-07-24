@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="96dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageButton
+                    android:id="@+id/closeButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/close"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_expense_close" />
+
+                <TextView
+                    android:id="@+id/screenTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:fontFamily="sans-serif"
+                    android:text="@string/expense_add_title"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@+id/deleteButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/delete_expense"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_expense_delete"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/expense_screen_padding"
+                android:paddingTop="16dp"
+                android:paddingEnd="@dimen/expense_screen_padding"
+                android:paddingBottom="32dp">
+
+                <LinearLayout
+                    android:id="@+id/typeTabGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_expense_tab_group"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
+
+                    <TextView
+                        android:id="@+id/fixedExpenseTab"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_expense_tab_selected"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="@string/expense_type_fixed"
+                        android:textColor="@color/payday_text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/variableExpenseTab"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="@string/expense_type_variable"
+                        android:textColor="@color/payday_text_secondary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/savingExpenseTab"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:text="@string/expense_type_saving"
+                        android:textColor="@color/payday_text_secondary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/categorySection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/Widget.Payday.Expense.Label"
+                        android:text="@string/expense_name" />
+
+                    <EditText
+                        android:id="@+id/expenseNameInput"
+                        style="@style/Widget.Payday.Expense.Input"
+                        android:hint="@string/expense_name_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="textCapSentences"
+                        android:maxLength="20"
+                        android:selectAllOnFocus="false" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/Widget.Payday.Expense.Label"
+                        android:text="@string/expense_amount" />
+
+                    <EditText
+                        android:id="@+id/expenseAmountInput"
+                        style="@style/Widget.Payday.Expense.Input"
+                        android:hint="@string/expense_amount_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:selectAllOnFocus="false" />
+
+                    <TextView
+                        android:id="@+id/monthlyConversionText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:paddingStart="4dp"
+                        android:textColor="@color/payday_text_hint"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/Widget.Payday.Expense.Label"
+                        android:text="@string/expense_category" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:clipToPadding="false"
+                        android:fillViewport="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/categoryGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <TextView
+                                android:id="@+id/leisureCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:background="@drawable/bg_expense_chip_selected"
+                                android:text="@string/category_leisure"
+                                android:textColor="@color/white" />
+
+                            <TextView
+                                android:id="@+id/housingCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:text="@string/category_housing" />
+
+                            <TextView
+                                android:id="@+id/foodCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:text="@string/category_food" />
+
+                            <TextView
+                                android:id="@+id/transportCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:text="@string/category_transport" />
+
+                            <TextView
+                                android:id="@+id/medicalCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:text="@string/category_medical" />
+
+                            <TextView
+                                android:id="@+id/shoppingCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:text="@string/category_shopping" />
+
+                            <TextView
+                                android:id="@+id/otherCategoryButton"
+                                style="@style/Widget.Payday.Expense.Chip"
+                                android:layout_marginEnd="0dp"
+                                android:text="@string/category_other" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/paymentMethodSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/paymentMethodLabel"
+                        style="@style/Widget.Payday.Expense.Label"
+                        android:text="@string/payment_method" />
+
+                    <EditText
+                        android:id="@+id/paymentMethodInput"
+                        style="@style/Widget.Payday.Expense.Input"
+                        android:hint="@string/payment_method_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="textCapSentences" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/Widget.Payday.Expense.Label"
+                        android:text="@string/payment_date" />
+
+                    <TextView
+                        android:id="@+id/paymentDateInput"
+                        style="@style/Widget.Payday.Expense.Input"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:hint="@string/payment_date_hint" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/shareSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/share_expense"
+                        android:textColor="@color/payday_text_secondary"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/shareSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:showText="false"
+                        app:useMaterialThemeColors="false" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/sharePeopleSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/share_people"
+                            android:textColor="@color/payday_text_secondary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/shareCostText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/payday_primary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="96dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_expense_share_counter"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:padding="4dp">
+
+                        <ImageButton
+                            android:id="@+id/decreaseShareButton"
+                            android:layout_width="28dp"
+                            android:layout_height="32dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease_share_people"
+                            android:paddingStart="3dp"
+                            android:paddingTop="11dp"
+                            android:paddingEnd="3dp"
+                            android:paddingBottom="11dp"
+                            android:src="@drawable/ic_expense_minus" />
+
+                        <TextView
+                            android:id="@+id/sharePeopleCountText"
+                            android:layout_width="32dp"
+                            android:layout_height="match_parent"
+                            android:fontFamily="sans-serif"
+                            android:gravity="center"
+                            android:textColor="@color/payday_text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <ImageButton
+                            android:id="@+id/increaseShareButton"
+                            android:layout_width="28dp"
+                            android:layout_height="32dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase_share_people"
+                            android:padding="3dp"
+                            android:src="@drawable/ic_expense_plus" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/recurringDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@color/payday_border" />
+
+                <LinearLayout
+                    android:id="@+id/recurringSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/recurring_payment_setting"
+                        android:textColor="@color/payday_primary"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Widget.Payday.Expense.Label"
+                                android:text="@string/recurring_day" />
+
+                            <TextView
+                                android:id="@+id/recurringDayInput"
+                                style="@style/Widget.Payday.Expense.Input"
+                                android:clickable="true"
+                                android:drawableEnd="@drawable/ic_expense_dropdown"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:textColor="@color/payday_text_primary"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Widget.Payday.Expense.Label"
+                                android:text="@string/recurring_cycle" />
+
+                            <TextView
+                                android:id="@+id/recurringCycleInput"
+                                style="@style/Widget.Payday.Expense.Input"
+                                android:clickable="true"
+                                android:drawableEnd="@drawable/ic_expense_dropdown"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:textColor="@color/payday_text_primary"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#F8FFFFFF"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_expense_save"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/save"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+    </FrameLayout>
+</FrameLayout>

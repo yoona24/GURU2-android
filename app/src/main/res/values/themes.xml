@@ -4,8 +4,10 @@
         <item name="colorPrimary">@color/payday_primary</item>
         <item name="colorPrimaryVariant">@color/payday_primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="android:fontFamily">sans</item>
-        <item name="android:statusBarColor">@color/payday_primary_dark</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowActionModeOverlay">true</item>
     </style>
 </resources>
-

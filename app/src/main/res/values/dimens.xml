@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="expense_screen_padding">16dp</dimen>
+    <dimen name="expense_section_gap">24dp</dimen>
+    <dimen name="expense_field_height">54dp</dimen>
+    <dimen name="expense_corner_radius">8dp</dimen>
+</resources>
