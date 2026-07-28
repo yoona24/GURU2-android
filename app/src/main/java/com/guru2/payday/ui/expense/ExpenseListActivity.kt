@@ -8,7 +8,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.guru2.payday.DashboardActivity
+import com.guru2.payday.MainActivity
 import com.guru2.payday.R
+import com.guru2.payday.auth.UserSession
 import com.guru2.payday.data.local.ExpenseEntity
 import com.guru2.payday.data.local.PaydayDatabase
 import com.guru2.payday.databinding.ActivityExpenseListBinding
@@ -22,9 +24,16 @@ import kotlinx.coroutines.withContext
 
 class ExpenseListActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExpenseListBinding
+    private lateinit var session: UserSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        session = UserSession(this)
+        if (!session.isLoggedIn) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
         binding = ActivityExpenseListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -56,7 +65,7 @@ class ExpenseListActivity : AppCompatActivity() {
             val expenses = withContext(Dispatchers.IO) {
                 PaydayDatabase.getInstance(this@ExpenseListActivity)
                     .expenseDao()
-                    .getAll()
+                    .getAllForUser(session.userId)
             }
             renderExpenses(expenses)
         }

@@ -16,7 +16,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.guru2.payday.data.local.ExpenseEntity
+import com.guru2.payday.data.local.IncomeEntity
 import com.guru2.payday.data.local.PaydayDatabase
+import com.guru2.payday.auth.UserSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,9 +44,15 @@ class ExpenseAddActivity : AppCompatActivity() {
     private var selectedCategory = "월급"
     private var calendar = Calendar.getInstance()
     private var expenseType = ExpenseEntity.TYPE_VARIABLE // 기본값 지출
+    private lateinit var session: UserSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        session = UserSession(this)
+        if (!session.isLoggedIn) {
+            finish()
+            return
+        }
 
         // 전달받은 타입 확인 (INCOME이면 수입, 아니면 지출)
         expenseType = intent.getStringExtra(EXTRA_EXPENSE_TYPE) ?: ExpenseEntity.TYPE_VARIABLE
@@ -261,16 +269,30 @@ class ExpenseAddActivity : AppCompatActivity() {
         val date = etDate.text.toString()
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val entity = ExpenseEntity(
-                name = "[$selectedCategory] $title",
-                category = selectedCategory,
-                paymentMethod = "현금",
-                paymentDate = date,
-                amount = amount,
-                type = expenseType // 수입 또는 지출 타입으로 저장
-            )
-
-            PaydayDatabase.getInstance(this@ExpenseAddActivity).expenseDao().insert(entity)
+            val database = PaydayDatabase.getInstance(this@ExpenseAddActivity)
+            if (expenseType == "INCOME") {
+                database.incomeDao().insert(
+                    IncomeEntity(
+                        userId = session.userId,
+                        name = title,
+                        amount = amount,
+                        category = selectedCategory,
+                        receivedDate = date,
+                    ),
+                )
+            } else {
+                database.expenseDao().insert(
+                    ExpenseEntity(
+                        userId = session.userId,
+                        name = title,
+                        category = selectedCategory,
+                        paymentMethod = "현금",
+                        paymentDate = date,
+                        amount = amount,
+                        type = expenseType,
+                    ),
+                )
+            }
 
             withContext(Dispatchers.Main) {
                 val msg = if (expenseType == "INCOME") "수입이 등록되었습니다." else "지출이 등록되었습니다."

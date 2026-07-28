@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.guru2.payday.data.local.ExpenseEntity
+import com.guru2.payday.auth.UserSession
 import com.guru2.payday.data.local.PaydayDatabase
 import com.guru2.payday.databinding.ActivityDashboardBinding
 import com.guru2.payday.ui.expense.ExpenseAddActivity // 👈 패키지 임포트 추가됨
@@ -19,9 +20,15 @@ import kotlinx.coroutines.withContext
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
+    private lateinit var session: UserSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        session = UserSession(this)
+        if (!session.isLoggedIn) {
+            returnToLogin()
+            return
+        }
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -30,9 +37,8 @@ class DashboardActivity : AppCompatActivity() {
                 if (binding.logoutButton.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         }
         binding.logoutButton.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
+            session.signOut()
+            returnToLogin()
         }
         binding.listTab.setOnClickListener {
             startActivity(Intent(this, ExpenseListActivity::class.java))
@@ -65,9 +71,12 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!::binding.isInitialized || !session.isLoggedIn) return
         lifecycleScope.launch {
-            val expenses = withContext(Dispatchers.IO) {
-                PaydayDatabase.getInstance(this@DashboardActivity).expenseDao().getAll()
+            val (expenses, incomes) = withContext(Dispatchers.IO) {
+                val database = PaydayDatabase.getInstance(this@DashboardActivity)
+                database.expenseDao().getAllForUser(session.userId) to
+                    database.incomeDao().getAllForUser(session.userId)
             }
             val total = expenses.sumOf { it.amount }
             val recurring = expenses.filter { it.type == ExpenseEntity.TYPE_FIXED }
@@ -75,7 +84,15 @@ class DashboardActivity : AppCompatActivity() {
             val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
             binding.totalExpense.text = getString(R.string.won_amount, formatter.format(total))
             binding.recurringExpense.text = getString(R.string.won_amount, formatter.format(recurring))
-            binding.emptyDashboard.visibility = if (expenses.isEmpty()) View.VISIBLE else View.GONE
+            binding.emptyDashboard.visibility =
+                if (expenses.isEmpty() && incomes.isEmpty()) View.VISIBLE else View.GONE
         }
+    }
+
+    private fun returnToLogin() {
+        startActivity(Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
     }
 }
