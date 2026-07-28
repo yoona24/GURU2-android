@@ -56,7 +56,7 @@ class ExpenseListActivity : AppCompatActivity() {
             val expenses = withContext(Dispatchers.IO) {
                 PaydayDatabase.getInstance(this@ExpenseListActivity)
                     .expenseDao()
-                    .getFixedExpenses()
+                    .getAll()
             }
             renderExpenses(expenses)
         }
@@ -68,17 +68,21 @@ class ExpenseListActivity : AppCompatActivity() {
         expenses.forEach { expense ->
             val item = LayoutInflater.from(this)
                 .inflate(R.layout.item_expense, binding.expenseList, false)
+
             item.findViewById<TextView>(R.id.expenseItemName).text = expense.name
+
             item.findViewById<TextView>(R.id.expenseItemDetail).text = getString(
                 R.string.expense_list_detail,
                 expense.category,
-                formatDate(expense.nextPaymentDate ?: expense.paymentDate),
+                formatDate(expense.paymentDate), // 수정된 날짜 필드 반영
                 expense.paymentMethod,
             )
+
             item.findViewById<TextView>(R.id.expenseItemAmount).text = getString(
                 R.string.expense_list_amount,
-                NumberFormat.getNumberInstance(Locale.KOREA).format(expense.personalAmount),
+                NumberFormat.getNumberInstance(Locale.KOREA).format(expense.amount), // 수정된 금액 필드 반영
             )
+
             item.setOnClickListener {
                 startActivity(
                     Intent(this, ExpenseAddActivity::class.java).apply {
