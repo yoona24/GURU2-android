@@ -62,7 +62,7 @@ class SignUpActivity : AppCompatActivity() {
             val sharedPref = getSharedPreferences("UserAuthPrefs", Context.MODE_PRIVATE)
             val savedEmail = sharedPref.getString("KEY_EMAIL", null)
 
-            // 이미 가입된 이메일인 경우 요청하신 에러 메시지 출력
+            // 이미 가입된 이메일인 경우 요청한 에러 메시지 출력
             if (savedEmail != null && savedEmail == email) {
                 Toast.makeText(this, "이미 계정이 있는 이메일 주소입니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

@@ -22,7 +22,7 @@ class AuthViewModel : ViewModel() {
 
         _isSignUpEnabled.value = isEmailValid && isPwValid && isMatch && isNickValid
     }
-
+//
     fun validateLoginInputs(email: String, pw: String) {
         _isLoginEnabled.value = email.isNotBlank() && pw.isNotBlank()
     }

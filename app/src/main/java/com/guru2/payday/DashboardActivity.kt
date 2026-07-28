@@ -46,7 +46,7 @@ class DashboardActivity : AppCompatActivity() {
                 .setItems(options) { _, which ->
                     when (which) {
                         0 -> {
-                            // 수입 등록 선택 시 ExpenseAddActivity로 이동 (INCOME 타입 전달)
+                            // 수입 등록 선택 시 ExpenseAddActivity로 이동
                             startActivity(Intent(this, ExpenseAddActivity::class.java).apply {
                                 putExtra(ExpenseAddActivity.EXTRA_EXPENSE_TYPE, "INCOME")
                             })

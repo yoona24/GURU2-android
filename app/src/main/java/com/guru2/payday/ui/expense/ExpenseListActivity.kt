@@ -74,7 +74,7 @@ class ExpenseListActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.expenseItemDetail).text = getString(
                 R.string.expense_list_detail,
                 expense.category,
-                formatDate(expense.paymentDate), // 수정된 날짜 필드 반영
+                formatDate(expense.paymentDate), // 수정된 날짜 필드
                 expense.paymentMethod,
             )
 
