@@ -1,6 +1,5 @@
 package com.guru2.payday
 
-import android.Manifest
 import android.graphics.Color
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
@@ -15,84 +14,89 @@ import com.github.mikephil.charting.utils.ColorTemplate
 class DashboardHelper {
 
     /**
-     * 이번 달 지출 비율 도넛(Pie) 차트 설정 함수
-     * - 정지 지출, 소비, 저축 비율을 시각화
+     * 이번 달 지출 분포 도넛(Pie) 차트 설정 함수
+     * - 총 수입 대비 총 지출의 비율(퍼센트)을 차트 중앙에 표시합니다.
      */
-    fun setupDonutChart(pieChart: PieChart, totalIncome: Float, fixed: Float, consumption: Float, saving: Float){
+    fun setupDonutChart(pieChart: PieChart, totalIncome: Float, totalExpense: Float, fixed: Float, consumption: Float, saving: Float) {
 
-        //수입이 하나도 등록되지 않은 경우 (0원 이하) 체크 분기
-        if(totalIncome <= 0f){
+        // 수입이 등록되지 않은 경우 예외 처리
+        if (totalIncome <= 0f) {
             pieChart.clear()
-            pieChart.centerText = "이번 달 수입을\n먼저 등록해주세요. "
-            pieChart.invalidate()
-            return
-        }
-        // 등록된 수입/지출 데이터가 하나도 없는 경우 예외 처리
-        if(fixed == 0f && consumption == 0f && saving == 0f){
-            pieChart.clear()
-            pieChart.centerText = "지출 내역이 없습니다. "
+            pieChart.centerText = "이번 달 수입을\n먼저 등록해주세요."
             pieChart.invalidate()
             return
         }
 
-        //차트에 들어갈 엔트리 데이터 생성
+        // 지출 내역이 없는 경우
+        if (totalExpense <= 0f) {
+            pieChart.clear()
+            pieChart.centerText = "0%\n지출 내역이 없습니다."
+            pieChart.invalidate()
+            return
+        }
+
+        // 전체 수입 대비 총 지출 퍼센트 계산
+        val expensePercent = ((totalExpense / totalIncome) * 100).toInt()
+
+        // 차트에 들어갈 엔트리 데이터 생성 (고정, 변동, 저축)
         val entries = listOf(
-            PieEntry(fixed, "정지 지출"),
-            PieEntry(consumption, "소비"),
-            PieEntry(saving, "저축")
+            PieEntry(fixed, "고정 지출"),
+            PieEntry(consumption, "변동 지출"),
+            PieEntry(saving, "저축/투자")
         )
 
         val dataSet = PieDataSet(entries, "").apply {
             colors = ColorTemplate.MATERIAL_COLORS.toList()
+            sliceSpace = 3f
+            valueTextSize = 12f
         }
 
-        // 이번 달 남은 금액 계산 로직 (총 수입 - (정기지출 + 소비 + 지출))
-        val remainingAmount = totalIncome - (fixed + consumption + saving)
-
-        //도넛 차트 디자인 및 속성 적용
+        // 도넛 차트 디자인 및 속성 적용
         pieChart.apply {
             data = PieData(dataSet)
             isDrawHoleEnabled = true
             setHoleColor(Color.WHITE)
+            holeRadius = 65f
+            transparentCircleRadius = 70f
 
-            centerText = "이번 달 남은 금액\n%, d원".format(remainingAmount.toLong())
+            // 피그마 디자인처럼 중앙에 퍼센테이지 표시
+            centerText = "$expensePercent%"
+            setCenterTextSize(24f)
+            setCenterTextColor(Color.parseColor("#333333"))
+
             description.isEnabled = false
+            legend.isEnabled = false
             invalidate()
         }
     }
 
     /**
      * 카테고리별 지출 상위 5개 막대(Bar) 그래프 설정 함수
-     * - 금액이 큰 순으로 정렬 후 상위 5개만 표시하고 나머지는 '기타'로 합산
      */
-
-    fun setupBarChart(barChart: BarChart, categoryMap : Map<String, Float>){
+    fun setupBarChart(barChart: BarChart, categoryMap: Map<String, Float>) {
         val sorted = categoryMap.entries.sortedByDescending { it.value }
         val entries = ArrayList<BarEntry>()
         var otherSum = 0f
 
-        // 명세 조건
-        if(sorted.size <= 5){
-            // 5개 이하인 경우 전부 그대로 표시
+        if (sorted.size <= 5) {
             sorted.forEachIndexed { index, entry ->
                 entries.add(BarEntry(index.toFloat(), entry.value))
             }
-        }else {
-            // 6개 이상인 경우 : 상위 4개 + 나머지를 더한 '기타' 1개 = 총 5개 항목으로 제한
-            for(i in 0 until 4){
+        } else {
+            for (i in 0 until 4) {
                 entries.add(BarEntry(i.toFloat(), sorted[i].value))
             }
-            // 5번째 이후 항목들의 금액을 모두 '기타'로 합산
-            for(i in 4 until sorted.size){
+            for (i in 4 until sorted.size) {
                 otherSum += sorted[i].value
             }
-            entries.add(BarEntry(4f, otherSum)) // 5번째 자리에 '기타' 배치
+            entries.add(BarEntry(4f, otherSum))
         }
-        val dataSet = BarDataSet(entries, "카데고리별 지출").apply {
+
+
+        val dataSet = BarDataSet(entries, "카테고리별 지출").apply {
             colors = ColorTemplate.COLORFUL_COLORS.toList()
         }
 
-        // 바 차트 속성 적용 및 새로고침
         barChart.apply {
             data = BarData(dataSet)
             description.isEnabled = false
