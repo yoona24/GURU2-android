@@ -19,7 +19,7 @@ class DashboardHelper {
      */
     fun setupDonutChart(pieChart: PieChart, totalIncome: Float, totalExpense: Float, fixed: Float, consumption: Float, saving: Float) {
 
-        // 수입이 등록되지 않은 경우 예외 처리
+        // 수입이 등록되지 않은 경우 예외 처리 (차트를 초기화하고 안내 문구 표시)
         if (totalIncome <= 0f) {
             pieChart.clear()
             pieChart.centerText = "이번 달 수입을\n먼저 등록해주세요."
@@ -27,7 +27,7 @@ class DashboardHelper {
             return
         }
 
-        // 지출 내역이 없는 경우
+        // 지출 내역이 없는 경우 예외 처리 (0% 및 안내 문구 표시)
         if (totalExpense <= 0f) {
             pieChart.clear()
             pieChart.centerText = "0%\n지출 내역이 없습니다."
@@ -38,13 +38,14 @@ class DashboardHelper {
         // 전체 수입 대비 총 지출 퍼센트 계산
         val expensePercent = ((totalExpense / totalIncome) * 100).toInt()
 
-        // 차트에 들어갈 엔트리 데이터 생성 (고정, 변동, 저축)
+        // 차트에 들어갈 엔트리 데이터 생성 (고정 지출, 변동 지출, 저축/투자)
         val entries = listOf(
             PieEntry(fixed, "고정 지출"),
             PieEntry(consumption, "변동 지출"),
             PieEntry(saving, "저축/투자")
         )
 
+        // 파이 차트 데이터셋 설정 (색상 팔레트, 조각 사이 간격, 텍스트 크기 지정)
         val dataSet = PieDataSet(entries, "").apply {
             colors = ColorTemplate.MATERIAL_COLORS.toList()
             sliceSpace = 3f
@@ -64,6 +65,7 @@ class DashboardHelper {
             setCenterTextSize(24f)
             setCenterTextColor(Color.parseColor("#333333"))
 
+            // 설명 라벨 및 범례 비활성화 후 차트 갱신
             description.isEnabled = false
             legend.isEnabled = false
             invalidate()
@@ -74,10 +76,12 @@ class DashboardHelper {
      * 카테고리별 지출 상위 5개 막대(Bar) 그래프 설정 함수
      */
     fun setupBarChart(barChart: BarChart, categoryMap: Map<String, Float>) {
+        // 지출 금액이 큰 순서대로 카테고리 정렬
         val sorted = categoryMap.entries.sortedByDescending { it.value }
         val entries = ArrayList<BarEntry>()
         var otherSum = 0f
 
+        // 카테고리 개수가 5개 이하인 경우 모두 표시, 초과인 경우 상위 4개와 나머지를 '기타'로 합산하여 5개로 구성
         if (sorted.size <= 5) {
             sorted.forEachIndexed { index, entry ->
                 entries.add(BarEntry(index.toFloat(), entry.value))
@@ -92,11 +96,12 @@ class DashboardHelper {
             entries.add(BarEntry(4f, otherSum))
         }
 
-
+        // 막대 그래프 데이터셋 생성 및 컬러 테마 지정
         val dataSet = BarDataSet(entries, "카테고리별 지출").apply {
             colors = ColorTemplate.COLORFUL_COLORS.toList()
         }
 
+        // 막대 차트 속성 설정 및 갱신
         barChart.apply {
             data = BarData(dataSet)
             description.isEnabled = false
