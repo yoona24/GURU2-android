@@ -3,6 +3,7 @@
     <color name="payday_primary">#0038D1</color>
     <color name="payday_primary_dark">#0038D1</color>
     <color name="payday_background">#FFFFFF</color>
+    <color name="payday_auth_background">#F1F3FB</color>
     <color name="payday_text_primary">#1A1B24</color>
     <color name="payday_text_secondary">#444655</color>
     <color name="payday_text_hint">#6B7280</color>
