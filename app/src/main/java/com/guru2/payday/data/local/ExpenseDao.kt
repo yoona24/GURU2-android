@@ -20,8 +20,17 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getById(id: Long): ExpenseEntity?
 
-    @Query("SELECT * FROM expenses ORDER BY paymentDate DESC, updatedAt DESC")
-    suspend fun getAll(): List<ExpenseEntity>
+    @Query("SELECT * FROM expenses WHERE id = :id AND userId = :userId LIMIT 1")
+    suspend fun getByIdForUser(id: Long, userId: Long): ExpenseEntity?
+
+    @Query("SELECT * FROM expenses WHERE userId = :userId ORDER BY paymentDate DESC, updatedAt DESC")
+    suspend fun getAllForUser(userId: Long): List<ExpenseEntity>
+
+    @Query(
+        "SELECT * FROM expenses WHERE userId = :userId AND type = 'FIXED' " +
+            "ORDER BY nextPaymentDate ASC, updatedAt DESC",
+    )
+    suspend fun getFixedExpensesForUser(userId: Long): List<ExpenseEntity>
 
     @Query(
         "SELECT * FROM expenses WHERE type = 'FIXED' " +
