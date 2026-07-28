@@ -80,14 +80,7 @@ class AuthViewModel : ViewModel(){
             return
         }
 
-        // 예시용 로그인 실패 분기
-        if(email != "correct@email.com" || pw != "password123"){
-            _errorMessage.value = "이메일 또는 비밀번호를 확인해주세요."
-            _authResult.value = false
-            return
-        }
-
-        // 로그인 성공 처리
+        // 백엔드 인증 연동 전 MVP에서는 비어 있지 않은 입력을 로그인 성공으로 처리한다.
         _authResult.value = true
     }
 

@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.guru2.payday.DashboardActivity
 import com.guru2.payday.R
 import com.guru2.payday.data.local.ExpenseEntity
 import com.guru2.payday.data.local.PaydayDatabase
@@ -27,12 +28,18 @@ class ExpenseListActivity : AppCompatActivity() {
         binding = ActivityExpenseListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.dashboardTab.setOnClickListener {
+            startActivity(Intent(this, DashboardActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            })
+            finish()
+        }
         binding.addExpenseButton.setOnClickListener {
             startActivity(
                 Intent(this, ExpenseAddActivity::class.java).apply {
                     putExtra(
                         ExpenseAddActivity.EXTRA_EXPENSE_TYPE,
-                        ExpenseEntity.TYPE_FIXED,
+                        ExpenseEntity.TYPE_VARIABLE,
                     )
                 },
             )
