@@ -14,6 +14,7 @@ import com.guru2.payday.databinding.ActivitySignUpBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class SignUpActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignUpBinding
@@ -61,7 +62,7 @@ class SignUpActivity : AppCompatActivity() {
 
         // 회원가입 버튼 클릭 시 실행되는 리스너
         binding.signUpButton.setOnClickListener {
-            val email = binding.emailInput.text.toString().trim()
+            val email = binding.emailInput.text.toString().trim().lowercase(Locale.ROOT)
             val pw = binding.passwordInput.text.toString()
             val pwConfirm = binding.passwordConfirmInput.text.toString()
             val nickname = binding.nicknameInput.text.toString().trim()

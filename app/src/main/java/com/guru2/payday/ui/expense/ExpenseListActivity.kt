@@ -177,7 +177,13 @@ class ExpenseListActivity : AppCompatActivity() {
                     amountTv.setTextColor(android.graphics.Color.parseColor("#52C41A"))
 
                     itemView.setOnClickListener {
-                        // 수입 항목 수정 화면이 있다면 추후 연결 가능
+                        startActivity(
+                            Intent(this, ExpenseAddActivity::class.java).apply {
+                                action = Intent.ACTION_EDIT
+                                putExtra(ExpenseAddActivity.EXTRA_INCOME_ID, income.id)
+                                putExtra(ExpenseAddActivity.EXTRA_EXPENSE_TYPE, "INCOME")
+                            },
+                        )
                     }
                 }
             }

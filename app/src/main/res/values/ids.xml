@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="fixedExpenseTab" type="id" />
+    <item name="variableExpenseTab" type="id" />
+    <item name="savingExpenseTab" type="id" />
+    <item name="expenseNameInput" type="id" />
+    <item name="expenseAmountInput" type="id" />
+    <item name="paymentMethodInput" type="id" />
+    <item name="paymentDateInput" type="id" />
+    <item name="shareSection" type="id" />
+    <item name="shareSwitch" type="id" />
+    <item name="sharePeopleSection" type="id" />
+    <item name="sharePeopleCountText" type="id" />
+    <item name="shareCostText" type="id" />
+    <item name="decreaseShareButton" type="id" />
+    <item name="increaseShareButton" type="id" />
+    <item name="recurringSection" type="id" />
+    <item name="recurringDayInput" type="id" />
+    <item name="recurringCycleInput" type="id" />
+    <item name="monthlyConversionText" type="id" />
+    <item name="saveButton" type="id" />
+    <item name="deleteButton" type="id" />
+</resources>

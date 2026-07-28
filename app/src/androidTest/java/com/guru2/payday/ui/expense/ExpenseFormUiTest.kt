@@ -7,10 +7,8 @@ import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.Visibility.GONE
-import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
@@ -22,6 +20,7 @@ import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.guru2.payday.R
+import com.guru2.payday.auth.UserSession
 import com.guru2.payday.data.local.ExpenseEntity
 import org.junit.Before
 import org.junit.Test
@@ -33,6 +32,7 @@ class ExpenseFormUiTest {
 
     @Before
     fun grantNotificationPermission() {
+        UserSession(context).signIn(0L)
         InstrumentationRegistry.getInstrumentation().uiAutomation
             .grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
     }
@@ -96,13 +96,7 @@ class ExpenseFormUiTest {
         scenario.use {
             onView(withId(R.id.expenseAmountInput)).perform(replaceText("17000"))
             onView(withId(R.id.recurringCycleInput)).perform(scrollTo())
-            scenario.onActivity {
-                it.findViewById<TextView>(R.id.recurringCycleInput).performClick()
-            }
-            onData(org.hamcrest.Matchers.anything())
-                .atPosition(1)
-                .inRoot(isPlatformPopup())
-                .perform(click())
+            onView(withText("연간")).perform(click())
             onView(withId(R.id.monthlyConversionText))
                 .check(matches(withText("월 환산 약 1,416원")))
 

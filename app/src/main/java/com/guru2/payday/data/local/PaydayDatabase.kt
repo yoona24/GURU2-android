@@ -28,6 +28,8 @@ abstract class PaydayDatabase : RoomDatabase() {
                     PaydayDatabase::class.java,
                     "payday.db",
                 )
+                    // 새 설치에서는 제출용 데모 계정과 예시 거래가 포함된 초기 DB를 복사한다.
+                    .createFromAsset("database/payday-demo.db")
                     .addMigrations(MIGRATION_1_2)
                     .build()
                     .also { instance = it }
