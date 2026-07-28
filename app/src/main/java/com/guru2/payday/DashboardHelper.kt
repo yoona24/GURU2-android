@@ -92,6 +92,7 @@ class DashboardHelper {
             entries.add(BarEntry(4f, otherSum))
         }
 
+
         val dataSet = BarDataSet(entries, "카테고리별 지출").apply {
             colors = ColorTemplate.COLORFUL_COLORS.toList()
         }

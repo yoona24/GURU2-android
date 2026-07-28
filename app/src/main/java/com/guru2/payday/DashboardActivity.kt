@@ -358,4 +358,5 @@ class DashboardActivity : AppCompatActivity() {
         })
         finish()
     }
+
 }

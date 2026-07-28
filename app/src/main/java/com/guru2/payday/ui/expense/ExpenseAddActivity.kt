@@ -559,6 +559,7 @@ class ExpenseAddActivity : AppCompatActivity() {
                 }
             }
 
+
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ExpenseAddActivity, "저장되었습니다.", Toast.LENGTH_SHORT).show()
                 finish()
