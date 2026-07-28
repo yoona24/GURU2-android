@@ -37,7 +37,7 @@ object IncomeCalculator {
         val formatted = String.format("%,d", cleanAmount)
         return Pair(true, formatted)
     }
-    // 3. 전체 입력값(수입명, 금액, 카테고리)이 모두 유효한지 최종 검사
+    // 3. 전체 입력값(수입명, 금액, 카테고리)이 모두 유효한지 검사
     fun isFormValid(title: String, amountStr: String, category: String): Boolean{
         val(isTitleValid, _) = validateTitle(title)
         val cleanAmount = amountStr.replace(",", "").toLongOrNull() ?: 0L

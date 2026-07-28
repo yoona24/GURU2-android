@@ -27,7 +27,7 @@ class DashboardHelper {
             pieChart.invalidate()
             return
         }
-        // 등록된 수입/지출 데이터가 하나도 없는 경우 예외 처리 분기
+        // 등록된 수입/지출 데이터가 하나도 없는 경우 예외 처리
         if(fixed == 0f && consumption == 0f && saving == 0f){
             pieChart.clear()
             pieChart.centerText = "지출 내역이 없습니다. "

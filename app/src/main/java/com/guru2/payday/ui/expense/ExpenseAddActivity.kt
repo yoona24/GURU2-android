@@ -267,7 +267,7 @@ class ExpenseAddActivity : AppCompatActivity() {
                 paymentMethod = "현금",
                 paymentDate = date,
                 amount = amount,
-                type = expenseType // 수입("INCOME") 또는 지출 타입으로 저장
+                type = expenseType // 수입 또는 지출 타입으로 저장
             )
 
             PaydayDatabase.getInstance(this@ExpenseAddActivity).expenseDao().insert(entity)

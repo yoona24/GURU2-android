@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
             binding.loginButton.alpha = if (enabled) 1f else 0.45f
         }
 
-        //SharedPreferences에서 직접 계정 정보를 불러와서 비교 후 로그인 처리
+        //SharedPreferences에서 직접 계정 정보를 불러와 비교 후 로그인 처리
         binding.loginButton.setOnClickListener {
             val email = binding.emailInput.text.toString().trim()
             val pw = binding.passwordInput.text.toString()

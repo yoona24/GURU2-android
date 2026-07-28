@@ -11,7 +11,7 @@ class SubscriptionListViewModel : ViewModel() {
     val isEmptyState: LiveData<Boolean> get() = _isEmptyState
 
     fun sortList(items: List<SubscriptionItem>, sortType: String): List<SubscriptionItem>{
-        //리스트가 비어있는지 여부 체크 후 빈 상태 LiveData 업데이트
+        //리스트가 비어있는지 여부 체크 후 빈 상태 LiveData
         _isEmptyState.value = items.isEmpty()
 
         return when(sortType){
