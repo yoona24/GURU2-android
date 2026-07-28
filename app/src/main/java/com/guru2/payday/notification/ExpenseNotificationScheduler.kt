@@ -12,9 +12,13 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 
+/**
+ * 정기 지출의 다음 결제일 하루 전 오전 9시에 실행될 알림 작업을 예약한다.
+ */
 object ExpenseNotificationScheduler {
     private const val WORK_PREFIX = "expense-payment-"
 
+    // 같은 지출의 기존 작업을 교체해 알림이 중복 예약되지 않도록 한다.
     fun schedule(context: Context, expense: ExpenseEntity) {
         val paymentDate = expense.nextPaymentDate?.let(LocalDate::parse) ?: return
         val notificationTime = LocalDateTime.of(
@@ -43,6 +47,7 @@ object ExpenseNotificationScheduler {
         )
     }
 
+    // 지출이 삭제되거나 정기 결제가 해제되면 예약된 작업을 취소한다.
     fun cancel(context: Context, expenseId: Long) {
         WorkManager.getInstance(context).cancelUniqueWork(workName(expenseId))
     }

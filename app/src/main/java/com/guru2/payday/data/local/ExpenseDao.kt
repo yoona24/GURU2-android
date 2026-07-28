@@ -6,6 +6,9 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 
+/**
+ * 지출 데이터의 등록, 조회, 수정, 삭제와 사용자별 목록 조회를 담당한다.
+ */
 @Dao
 interface ExpenseDao {
     @Insert
