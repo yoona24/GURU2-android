@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.NumberFormat
+import java.time.LocalDate
 import java.util.Calendar
 import java.util.Locale
 
@@ -45,6 +46,11 @@ class ExpenseAddActivity : AppCompatActivity() {
     private var calendar = Calendar.getInstance()
     private var expenseType = ExpenseEntity.TYPE_VARIABLE // 기본값 지출
     private lateinit var session: UserSession
+    private var editingExpense: ExpenseEntity? = null
+    private val expenseId: Long
+        get() = intent.getLongExtra(EXTRA_EXPENSE_ID, 0L)
+    private val isEditMode: Boolean
+        get() = intent.action == android.content.Intent.ACTION_EDIT && expenseId > 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +66,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         setupDynamicLayout()
         setupUI()
         setupListeners()
+        if (isEditMode) loadExpenseForEdit()
     }
 
     private fun setupDynamicLayout() {
@@ -86,7 +93,11 @@ class ExpenseAddActivity : AppCompatActivity() {
         }
 
         // 수입인지 지출인지에 따라 타이틀 동적 변경
-        val titleText = if (expenseType == "INCOME") "수입 추가" else "지출 추가"
+        val titleText = when {
+            isEditMode -> "지출 수정"
+            expenseType == "INCOME" -> "수입 추가"
+            else -> "지출 추가"
+        }
         tvTopTitle = TextView(this).apply {
             text = titleText
             textSize = 18f
@@ -155,7 +166,7 @@ class ExpenseAddActivity : AppCompatActivity() {
 
         // 저장 버튼
         btnSave = Button(this).apply {
-            text = "저장하기"
+            text = if (isEditMode) "수정하기" else "저장하기"
             isEnabled = false
             alpha = 0.5f
             layoutParams = LinearLayout.LayoutParams(
@@ -262,6 +273,42 @@ class ExpenseAddActivity : AppCompatActivity() {
         btnSave.alpha = if (isValid) 1f else 0.5f
     }
 
+    private fun loadExpenseForEdit() {
+        lifecycleScope.launch {
+            val expense = withContext(Dispatchers.IO) {
+                PaydayDatabase.getInstance(this@ExpenseAddActivity)
+                    .expenseDao()
+                    .getByIdForUser(expenseId, session.userId)
+            }
+            if (expense == null) {
+                Toast.makeText(
+                    this@ExpenseAddActivity,
+                    "수정할 지출을 찾을 수 없습니다.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                finish()
+                return@launch
+            }
+            editingExpense = expense
+            expenseType = expense.type
+            etTitle.setText(expense.name)
+            etAmount.setText(
+                NumberFormat.getNumberInstance(Locale.KOREA).format(expense.amount),
+            )
+            etDate.setText(expense.paymentDate)
+            selectedCategory = expense.category
+            for (index in 0 until chipGroupCategory.childCount) {
+                val chip = chipGroupCategory.getChildAt(index) as? Chip ?: continue
+                chip.isChecked = chip.text.toString() == expense.category
+            }
+            runCatching {
+                val date = LocalDate.parse(expense.paymentDate)
+                calendar.set(date.year, date.monthValue - 1, date.dayOfMonth)
+            }
+            validateInputs()
+        }
+    }
+
     private fun saveData() {
         val title = etTitle.text.toString().trim()
         val amountStr = etAmount.text.toString().replace(",", "")
@@ -281,21 +328,38 @@ class ExpenseAddActivity : AppCompatActivity() {
                     ),
                 )
             } else {
-                database.expenseDao().insert(
-                    ExpenseEntity(
-                        userId = session.userId,
-                        name = title,
-                        category = selectedCategory,
-                        paymentMethod = "현금",
-                        paymentDate = date,
-                        amount = amount,
-                        type = expenseType,
-                    ),
-                )
+                val current = editingExpense
+                if (current != null) {
+                    database.expenseDao().update(
+                        current.copy(
+                            name = title,
+                            amount = amount,
+                            category = selectedCategory,
+                            paymentDate = date,
+                            updatedAt = System.currentTimeMillis(),
+                        ),
+                    )
+                } else {
+                    database.expenseDao().insert(
+                        ExpenseEntity(
+                            userId = session.userId,
+                            name = title,
+                            category = selectedCategory,
+                            paymentMethod = "현금",
+                            paymentDate = date,
+                            amount = amount,
+                            type = expenseType,
+                        ),
+                    )
+                }
             }
 
             withContext(Dispatchers.Main) {
-                val msg = if (expenseType == "INCOME") "수입이 등록되었습니다." else "지출이 등록되었습니다."
+                val msg = when {
+                    editingExpense != null -> "지출이 수정되었습니다."
+                    expenseType == "INCOME" -> "수입이 등록되었습니다."
+                    else -> "지출이 등록되었습니다."
+                }
                 Toast.makeText(this@ExpenseAddActivity, msg, Toast.LENGTH_SHORT).show()
                 finish()
             }

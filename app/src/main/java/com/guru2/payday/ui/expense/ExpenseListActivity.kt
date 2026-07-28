@@ -97,6 +97,7 @@ class ExpenseListActivity : AppCompatActivity() {
                     Intent(this, ExpenseAddActivity::class.java).apply {
                         action = Intent.ACTION_EDIT
                         putExtra(ExpenseAddActivity.EXTRA_EXPENSE_ID, expense.id)
+                        putExtra(ExpenseAddActivity.EXTRA_EXPENSE_TYPE, expense.type)
                     },
                 )
             }
