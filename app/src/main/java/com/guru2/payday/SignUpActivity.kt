@@ -27,7 +27,8 @@ class SignUpActivity : AppCompatActivity() {
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) {
                 viewModel.validateSignUpInputs(
                     binding.emailInput.text.toString(),
                     binding.passwordInput.text.toString(),
@@ -35,7 +36,6 @@ class SignUpActivity : AppCompatActivity() {
                     binding.nicknameInput.text.toString(),
                 )
             }
-            override fun afterTextChanged(s: Editable?) = Unit
         }
 
         listOf(
@@ -56,10 +56,9 @@ class SignUpActivity : AppCompatActivity() {
             val email = binding.emailInput.text.toString().trim()
             val pw = binding.passwordInput.text.toString()
             val pwConfirm = binding.passwordConfirmInput.text.toString()
-            val nickname = binding.nicknameInput.text.toString()
+            val nickname = binding.nicknameInput.text.toString().trim()
 
-            val pwRegex = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$".toRegex()
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() || !pw.matches(pwRegex) || pw != pwConfirm || nickname.length !in 2..10) {
+            if (!viewModel.areSignUpInputsValid(email, pw, pwConfirm, nickname)) {
                 Toast.makeText(this, "입력 양식을 확인해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
