@@ -29,6 +29,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * 수입과 지출의 등록 폼을 구성하고, 지출 수정 시 기존 데이터를 불러와 갱신한다.
+ */
 class ExpenseAddActivity : AppCompatActivity() {
 
     companion object {
@@ -85,6 +88,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         if (isEditMode) loadExpenseForEdit()
     }
 
+    // 선택한 거래 유형에 맞춰 입력 항목과 선택 옵션을 동적으로 구성한다.
     private fun setupDynamicLayout() {
         val scrollView = ScrollView(this).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -119,7 +123,7 @@ class ExpenseAddActivity : AppCompatActivity() {
             setPadding(10, 10, 20, 10)
         }
 
-        // 수입 등록인지 지출 등록인지에 따라 타이틀 변경
+        // 등록 유형과 수정 여부에 맞춰 화면 제목을 표시한다.
         val titleText = when {
             isEditMode -> "지출 수정"
             expenseType == "INCOME" -> "수입 등록"
@@ -137,7 +141,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         topLayout.addView(tvTopTitle)
         rootLayout.addView(topLayout)
 
-        // 지출 추가일 때만 고정/변동/저축 탭 노출 (수입일 때는 숨김)
+        // 지출 등록에서만 고정 지출, 변동 지출, 저축·투자 유형을 선택한다.
         if (expenseType != "INCOME") {
             chipGroupType = ChipGroup(this).apply {
                 isSingleSelection = true
@@ -201,7 +205,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         }
         rootLayout.addView(etDate)
 
-        // 공유 여부 영역 (변동 지출 및 수입일 때는 숨김)
+        // 공유 인원과 정기 결제 설정은 선택한 지출 유형에 따라 노출한다.
         if (expenseType != "INCOME") {
             layoutSharedHeader = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -339,6 +343,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         setContentView(scrollView)
     }
 
+    // 거래 유형별로 사용할 수 있는 카테고리 목록을 다시 그린다.
     private fun updateCategoryChips(type: String) {
         chipGroupCategory.removeAllViews()
         val categories = when (type) {
@@ -377,6 +382,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         )
     }
 
+    // 금액을 천 단위 콤마 형식으로 표시하고 입력 상태를 다시 검증한다.
     private fun setupUI() {
         etAmount.addTextChangedListener(object : TextWatcher {
             private var current = ""
@@ -412,6 +418,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         })
     }
 
+    // 총 금액을 공유 인원으로 나눠 현재 사용자의 부담 금액을 계산한다.
     private fun updateMyShareAmount() {
         val amountStr = etAmount.text.toString().replace(",", "")
         val totalAmount = amountStr.toLongOrNull() ?: 0L
@@ -420,6 +427,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         tvMyShareAmount.text = "내 부담 (${formattedShare}원 / ${sharedPersonCount}명 공유)"
     }
 
+    // 유형, 카테고리, 공유 여부, 반복 주기 선택에 따른 화면 동작을 연결한다.
     private fun setupListeners() {
         btnClose.setOnClickListener { finish() }
         etDate.setOnClickListener { showDatePickerDialog() }
@@ -483,6 +491,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         }, year, month, day).show()
     }
 
+    // 필수 입력값이 모두 유효할 때만 저장 버튼을 활성화한다.
     private fun validateInputs() {
         val title = etTitle.text.toString().trim()
         val amountStr = etAmount.text.toString().replace(",", "")
@@ -494,6 +503,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         btnSave.alpha = if (isValid) 1f else 0.5f
     }
 
+    // 현재 사용자에게 속한 지출을 조회해 수정 화면에 기존 값을 채운다.
     private fun loadExpenseForEdit() {
         lifecycleScope.launch {
             val expense = withContext(Dispatchers.IO) {
@@ -516,6 +526,7 @@ class ExpenseAddActivity : AppCompatActivity() {
         }
     }
 
+    // 입력값을 현재 사용자의 거래 데이터로 저장하거나 기존 지출을 갱신한다.
     private fun saveData() {
         val title = etTitle.text.toString().trim()
         val amountStr = etAmount.text.toString().replace(",", "")
@@ -526,10 +537,9 @@ class ExpenseAddActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val database = PaydayDatabase.getInstance(this@ExpenseAddActivity)
 
-            // 수입 등록일 때와 지출 등록일 때 저장 테이블 분기
+            // 수입과 지출은 서로 다른 저장 흐름으로 분기한다.
             if (expenseType == "INCOME") {
-                // 수입 데이터 저장 로직 (필요 시 기존 수입 저장 메서드 호출)
-                // 현재 코드 구조상 수입 엔티티가 없거나 ExpenseEntity를 공유한다면 타입 지정 가능
+                // 수입 저장은 수입 관리 기능에서 처리한다.
             } else {
                 val current = editingExpense
                 if (current != null) {

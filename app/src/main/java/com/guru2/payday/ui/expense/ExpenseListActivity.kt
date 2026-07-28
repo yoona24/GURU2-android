@@ -22,6 +22,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * 로그인한 사용자의 지출 목록을 표시하고 등록 및 수정 화면으로 이동한다.
+ */
 class ExpenseListActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExpenseListBinding
     private lateinit var session: UserSession
@@ -60,6 +63,7 @@ class ExpenseListActivity : AppCompatActivity() {
         loadExpenses()
     }
 
+    // 현재 로그인한 사용자의 지출만 Room에서 조회한다.
     private fun loadExpenses() {
         lifecycleScope.launch {
             val expenses = withContext(Dispatchers.IO) {
@@ -71,6 +75,7 @@ class ExpenseListActivity : AppCompatActivity() {
         }
     }
 
+    // 조회 결과를 목록 항목으로 만들고 선택 시 수정 화면을 연다.
     private fun renderExpenses(expenses: List<ExpenseEntity>) {
         binding.expenseList.removeAllViews()
         binding.emptyState.visibility = if (expenses.isEmpty()) View.VISIBLE else View.GONE
@@ -83,13 +88,13 @@ class ExpenseListActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.expenseItemDetail).text = getString(
                 R.string.expense_list_detail,
                 expense.category,
-                formatDate(expense.paymentDate), // 수정된 날짜 필드
+                formatDate(expense.paymentDate),
                 expense.paymentMethod,
             )
 
             item.findViewById<TextView>(R.id.expenseItemAmount).text = getString(
                 R.string.expense_list_amount,
-                NumberFormat.getNumberInstance(Locale.KOREA).format(expense.amount), // 수정된 금액 필드 반영
+                NumberFormat.getNumberInstance(Locale.KOREA).format(expense.amount),
             )
 
             item.setOnClickListener {

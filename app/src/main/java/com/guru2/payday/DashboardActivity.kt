@@ -115,19 +115,13 @@ class DashboardActivity : AppCompatActivity() {
             }
 
             findContainerView(binding.root)?.let { container ->
-                // ★ 핵심: onResume마다 중복으로 쌓이는 것을 방지하기 위해 동적 추가 뷰 영역 초기화 (기본 XML 뷰들만 남기고 제거)
-                // 만약 고정된 XML 자식 개수를 넘어서는 동적 뷰가 있다면 정리
+                // 화면을 다시 열 때 이전에 추가한 거래 뷰가 중복되지 않도록 정리한다.
                 if (container.tag != "initialized") {
                     container.tag = "initialized"
-                } else {
-                    // 이미 동적 생성된 항목들이 있다면 기본 구조(상단 요약 등)를 제외한 하위 동적 뷰들 제거
-                    // 안전하게 container 내부에서 우리가 동적으로 넣은 뷰들을 식별하기 위해 tag나 카운트 활용 가능
-                    // 여기서는 새로고칠 때마다 컨테이너의 특정 인덱스 이후를 모두 지우는 방식으로 깔끔하게 정리합니다.
                 }
 
-                // 혹은 매번 렌더링 전 컨테이너를 새로 그리기 전 기존 동적 뷰들을 안전하게 제거하도록 처리
-                // XML에 고정된 기본 뷰 개수 이후의 뷰들을 제거합니다.
-                val baseChildrenCount = 3 // XML상 기본 배치된 뷰 개수에 따라 조절 (보통 3~4개 이내)
+                // XML에 정의된 기본 뷰 이후의 동적 뷰만 제거한다.
+                val baseChildrenCount = 3
                 if (container.childCount > baseChildrenCount) {
                     container.removeViews(baseChildrenCount, container.childCount - baseChildrenCount)
                 }
@@ -151,7 +145,7 @@ class DashboardActivity : AppCompatActivity() {
                     }
                 }
 
-                // 1. 고정 지출 / 변동 지출 / 저축/투자 요약 바
+                // 지출 유형별 합계를 요약해서 표시한다.
                 val breakdownLayout = LinearLayout(this@DashboardActivity).apply {
                     orientation = LinearLayout.HORIZONTAL
                     setPadding(16, 16, 16, 16)
@@ -171,7 +165,7 @@ class DashboardActivity : AppCompatActivity() {
                 breakdownLayout.addView(breakdownText)
                 container.addView(breakdownLayout)
 
-                // 2. 과다 지출 항목 카드 영역
+                // 가장 지출이 큰 카테고리를 과다 지출 항목으로 표시한다.
                 if (totalExpense > 0) {
                     val categoryMap = expenses.groupBy { it.category }
                         .mapValues { entry -> entry.value.sumOf { it.amount } }
@@ -213,7 +207,7 @@ class DashboardActivity : AppCompatActivity() {
                     }
                 }
 
-                // 3. 카테고리별 거래 내역 타이틀 및 필터 칩
+                // 카테고리별 거래 내역을 선택하는 필터를 구성한다.
                 val sectionTitle = TextView(this@DashboardActivity).apply {
                     text = "카테고리별 거래 내역"
                     textSize = 16f
@@ -253,7 +247,7 @@ class DashboardActivity : AppCompatActivity() {
                         setTextColor(if (cat == currentFilteredCategory) Color.WHITE else Color.parseColor("#555555"))
                         setOnClickListener {
                             currentFilteredCategory = cat
-                            onResume() // 클릭 시 필터 적용 반영
+                            onResume() // 선택한 카테고리로 거래 목록을 다시 표시한다.
                         }
                     }
                     chipContainer.addView(chip)
@@ -261,7 +255,7 @@ class DashboardActivity : AppCompatActivity() {
                 chipScroll.addView(chipContainer)
                 container.addView(chipScroll)
 
-                // 4. 상세 거래 내역 리스트 렌더링
+                // 선택한 카테고리에 해당하는 상세 거래 내역을 표시한다.
                 val filteredList = if (currentFilteredCategory == "전체") expenses else expenses.filter { it.category == currentFilteredCategory }
 
                 filteredList.forEach { expense ->

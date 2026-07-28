@@ -22,10 +22,14 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlinx.coroutines.runBlocking
 
+/**
+ * 예약 시각에 결제 예정 알림을 표시하고 다음 결제 회차의 알림을 다시 예약한다.
+ */
 class ExpenseNotificationWorker(
     appContext: Context,
     workerParams: WorkerParameters,
 ) : Worker(appContext, workerParams) {
+    // 알림 권한을 확인한 뒤 정기 지출 목록으로 이동하는 알림을 표시한다.
     override fun doWork(): Result {
         val expenseId = inputData.getLong(KEY_EXPENSE_ID, 0L)
         val name = inputData.getString(KEY_NAME) ?: return Result.failure()
@@ -74,6 +78,7 @@ class ExpenseNotificationWorker(
         return Result.success()
     }
 
+    // Android 8 이상에서 결제 예정 알림 채널을 생성한다.
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -87,6 +92,7 @@ class ExpenseNotificationWorker(
         }
     }
 
+    // 반복 주기에 따라 다음 결제일을 계산하고 다음 알림 작업을 예약한다.
     private fun scheduleFollowingNotification(expenseId: Long) = runBlocking {
         val dao = PaydayDatabase.getInstance(applicationContext).expenseDao()
         val expense = dao.getById(expenseId) ?: return@runBlocking
