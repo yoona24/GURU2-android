@@ -26,3 +26,9 @@ Thumbs.db
 captures/
 externalNativeBuild/
 
+# Local Room database files
+*.db
+*.db-shm
+*.db-wal
+!app/src/main/assets/database/payday-demo.db
+!submission/payday-demo.db

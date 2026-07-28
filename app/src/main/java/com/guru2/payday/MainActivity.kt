@@ -16,6 +16,7 @@ import com.guru2.payday.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         // 로그인 버튼 클릭 시 실행되는 리스너
         binding.loginButton.setOnClickListener {
-            val email = binding.emailInput.text.toString().trim()
+            val email = binding.emailInput.text.toString().trim().lowercase(Locale.ROOT)
             val pw = binding.passwordInput.text.toString()
 
             // 이메일이나 비밀번호가 비어있는 경우 토스트 메시지 출력 후 리턴

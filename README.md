@@ -82,10 +82,21 @@
 
 ## Getting Started
 
+### 데모 계정
+
+새 환경에 앱을 설치하면 제출용 초기 Room DB가 자동으로 생성됩니다.
+
+```text
+ID: demo@payday.com
+PW: payday1234
+```
+
+초기 DB에는 기능 확인을 위한 예시 수입 1건과 지출 3건이 포함되어 있습니다. 사용자가 직접 가입한 실제 회원정보는 포함하지 않습니다.
+
 ### 1. 프로젝트 클론
 
 ```bash
-git clone https://github.com/lynni0925/GURU2-android.git
+git clone https://github.com/yoona24/GURU2-android.git
 cd GURU2-android
 git switch develop
 ```

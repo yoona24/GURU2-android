@@ -5,6 +5,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -53,7 +54,7 @@ class ExpenseListEditNavigationTest {
             onView(withText("지출 수정")).check(matches(isDisplayed()))
             onView(withText("월세수정테스트")).check(matches(isDisplayed()))
             onView(withText("300,000")).check(matches(isDisplayed()))
-            onView(withText("수정하기")).check(matches(isDisplayed()))
+            onView(withText("수정하기")).perform(scrollTo()).check(matches(isDisplayed()))
         }
     }
 

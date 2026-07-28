@@ -9,7 +9,7 @@ interface UserDao {
     @Insert
     suspend fun insert(user: UserEntity): Long
 
-    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    @Query("SELECT * FROM users WHERE email = :email COLLATE NOCASE LIMIT 1")
     suspend fun getByEmail(email: String): UserEntity?
 
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
